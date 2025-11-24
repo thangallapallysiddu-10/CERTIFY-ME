@@ -88,3 +88,48 @@ certifyme/
     │   └── thumbs/
     ├── qrcodes/
     └── css/js/images
+
+
+
+⚙️ Setup & Installation
+1️⃣ Clone the Repo
+git clone https://github.com/your-username/CERTIFYME.git
+cd CERTIFYME
+
+2️⃣ Create & Activate Virtual Environment
+python -m venv venv
+
+
+Windows
+
+venv\Scripts\activate
+
+3️⃣ Install Dependencies
+pip install -r requirements.txt
+
+4️⃣ (Optional) Start Fresh
+del certifyme.db
+
+5️⃣ Run the App
+python app.py
+
+
+Open:
+
+http://127.0.0.1:5000
+
+Admin seed : Email: admin@example.com
+Password: adminpass123
+
+❤️ Credits
+
+Built with dedication by Team HACKVOK
+Designed for modern certification workflows.
+
+
+
+Admin
+http://127.0.0.1:5000/_seed_admin
+
+Email: admin@example.com
+Password: adminpass123
