@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mx-auto" style="max-width:1000px;">
+  <h3 class="mb-2">Certificate Verification</h3>
+
+  <div class="card p-3 mb-3">
+    <div><strong>Student:</strong> {{ cert.student_name }}<br>
+      <strong>Verification code:</strong> {{ cert.verification_code }}</div>
+
+    <div class="mt-3 text-center">
+      {% if cert.thumbnail %}
+        <img src="{{ url_for('serve_thumb', filename=cert.thumbnail) }}?v={{ cert.id }}" style="max-width:100%; border-radius:8px;">
+      {% elif cert.filename and cert.filename.lower().endswith('.pdf') %}
+        <div style="height:80vh;">
+          <iframe src="{{ url_for('uploaded_file', filename=cert.filename) }}" style="width:100%;height:100%;border:0;"></iframe>
+        </div>
+      {% else %}
+        <div class="small-muted">No preview available.</div>
+      {% endif %}
+    </div>
+
+    <div class="mt-3">
+      {% if not tampered and hash_ok and sig_ok %}
+        <div class="alert alert-success">This certificate appears <strong>Genuine</strong>.</div>
+      {% else %}
+        <div class="alert alert-danger">This certificate appears <strong>Tampered / Invalid</strong>.</div>
+      {% endif %}
+      <div class="small text-muted">Verification checked on server.</div>
+    </div>
+  </div>
+
+  <div class="text-muted small">
+    This public page shows verification status only. Downloads are not provided here.
+  </div>
+</div>
+{% endblock %}

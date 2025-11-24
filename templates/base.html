@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>CertifyMe</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- AOS for scroll animations -->
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --muted: #111111;
+      --card-radius: 12px;
+      --brand-grad-from: #0ea5e9;
+      --brand-grad-to: #6366f1;
+    }
+
+    body {
+      padding-top: 28px;
+      background: #f1f2f2;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color: #0b1220;
+    }
+
+    .container-main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 18px;
+    }
+
+    .card {
+      border-radius: var(--card-radius);
+      box-shadow: 0 6px 18px rgba(18,38,63,0.06);
+    }
+
+    .brand {
+      font-weight:700;
+      letter-spacing:0.2px;
+      font-size:20px;
+    }
+
+    .brand-float { animation: floaty 4s ease-in-out infinite; }
+
+    @keyframes floaty {
+      0%   { transform: translateY(0); }
+      50%  { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
+    }
+
+    .small-muted { color: var(--muted); font-size:0.92rem; }
+
+    /* Animations + micro interactions */
+    .anim-card {
+      transition: transform .22s cubic-bezier(.2,.9,.3,1), box-shadow .22s ease;
+      will-change: transform;
+    }
+    .anim-card:hover {
+      transform: translateY(-8px) scale(1.01);
+      box-shadow: 0 18px 40px rgba(11,32,70,0.12);
+    }
+
+    .anim-btn {
+      transition: transform .14s ease, box-shadow .14s ease;
+      will-change: transform;
+    }
+    .anim-btn:active { transform: scale(.98); }
+    .anim-btn:hover { box-shadow: 0 8px 18px rgba(0,0,0,0.12); }
+
+    /* copy toast */
+    .copy-toast {
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      background:linear-gradient(135deg,var(--brand-grad-from),var(--brand-grad-to));
+      color:white;
+      padding:10px 14px;
+      border-radius:10px;
+      box-shadow:0 12px 28px rgba(14,21,47,0.18);
+      transform: translateY(18px);
+      opacity:0;
+      transition: transform .32s cubic-bezier(.2,.9,.3,1), opacity .32s ease;
+      z-index:99999;
+      font-weight:600;
+      font-size:0.95rem;
+    }
+    .copy-toast.show { transform: translateY(0); opacity:1; }
+
+    /* shimmer skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s linear infinite;
+      border-radius:6px;
+      min-height:72px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* canvas fade-in */
+    .canvas-fade { opacity:0; transform: translateY(6px) scale(.998); transition: opacity .38s ease, transform .38s cubic-bezier(.2,.9,.3,1); }
+    .canvas-fade.show { opacity:1; transform: translateY(0) scale(1); }
+
+    footer { margin-top:28px; color:var(--muted); font-size:0.9rem; text-align:center; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .preview-img { max-width:100%; max-height:360px; object-fit:contain; border-radius:8px; border:1px solid #eee; background:white; }
+
+    .btn-group .btn { min-width:88px; }
+
+    /* small responsive tweaks */
+    @media (max-width: 768px) {
+      .topbar { flex-direction:column; align-items:flex-start; gap:8px; }
+      .brand { font-size:18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container container-main">
+    <div class="card p-3 mb-3">
+      <div class="topbar mb-2">
+        <div>
+          <a href="{{ url_for('index') }}" class="brand text-decoration-none text-dark brand-float" data-aos="fade-down">CertifyMe</a>
+          <div class="small-muted">Certificate issuance • tamper detection</div>
+        </div>
+
+        <div class="d-flex gap-2 align-items-center">
+          {% if session.admin_name %}
+            <small class="text-muted me-2">Admin: {{ session.admin_name }}</small>
+            <a class="btn btn-outline-dark btn-sm anim-btn" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+            <a class="btn btn-outline-secondary btn-sm anim-btn" href="{{ url_for('admin_logout') }}">Logout</a>
+          {% elif session.teacher_name %}
+            <small class="text-muted me-2">Teacher: {{ session.teacher_name }}</small>
+            <a class="btn btn-outline-secondary btn-sm anim-btn" href="{{ url_for('logout') }}">Logout</a>
+          {% elif session.student_name %}
+            <small class="text-muted me-2">Student: {{ session.student_name }}</small>
+            <a class="btn btn-outline-secondary btn-sm anim-btn" href="{{ url_for('student_logout') }}">Logout</a>
+          {% else %}
+            <div class="btn-group" role="group" aria-label="role-links">
+              <a class="btn btn-outline-primary btn-sm anim-btn" href="{{ url_for('login') }}">Teacher</a>
+              <a class="btn btn-outline-primary btn-sm anim-btn" href="{{ url_for('student_login') }}">Student</a>
+              <a class="btn btn-dark btn-sm anim-btn" href="{{ url_for('admin_login') }}">Admin</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, msg in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ msg }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </div>
+
+    <div class="text-center small-muted mb-4">
+      <div class="mt-2">Designed by Team HACKVOK</div>
+    </div>
+
+    <footer>
+      <div>© 2025 CertifyMe — SHA-256 + HMAC tamper detection.</div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- AOS -->
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      if (window.AOS) {
+        AOS.init({
+          duration: 600,
+          easing: 'ease-out-cubic',
+          once: true,
+          mirror: false
+        });
+      }
+    });
+
+    // helper: show temporary copy toast (used by copyShare)
+    function showCopyToast(msg) {
+      var t = document.createElement('div');
+      t.className = 'copy-toast';
+      t.innerText = msg || 'Copied to clipboard';
+      document.body.appendChild(t);
+      requestAnimationFrame(function(){ t.classList.add('show'); });
+      setTimeout(function(){
+        t.classList.remove('show');
+        setTimeout(function(){ t.remove(); }, 420);
+      }, 1500);
+    }
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

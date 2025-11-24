@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* Tabs */
+.tab-btn {
+  padding: 10px 18px;
+  border: none;
+  background: #e5e7eb;
+  color: #1f2937;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all .25s;
+}
+.tab-btn.active {
+  background: #4F46E5;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(79,70,229,.25);
+}
+.tab-btn:hover {
+  background: #d1d5db;
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn .35s ease-out;
+}
+.tab-content.active {
+  display: block;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Upload UI styles */
+.suggestions { max-height: 220px; overflow: auto; z-index: 1200; }
+.thumb-preview { max-width: 180px; border-radius: 8px; border: 1px solid #eee; }
+.muted { color: #6b7280; }
+.code-box { background:#0b2447; color:#fff; padding:8px 10px; border-radius:6px; font-family: monospace; display:inline-block; }
+
+/* Cards */
+.card-ui {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+}
+
+/* Upload list */
+.list-group-item {
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 8px !important;
+  margin-bottom: 8px;
+  padding: 14px 18px;
+  background: #fff;
+  transition: transform .18s, box-shadow .18s;
+}
+.list-group-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+.small-muted { color:#6b7280; font-size: .85rem; }
+</style>
+
+<div class="container mt-4">
+  
+  <!-- Tabs -->
+  <div class="mb-3 d-flex gap-2">
+    <button class="tab-btn active" data-tab="uploadTab">Upload Certificate</button>
+    <button class="tab-btn" data-tab="listTab">Your Uploads</button>
+  </div>
+
+  <!-- Upload Certificate Tab -->
+  <div id="uploadTab" class="tab-content active">
+    <div class="card-ui mb-4">
+      <h4 class="mb-2">Upload Certificate</h4>
+      <div class="small-muted mb-3">Fill student details, attach certificate (PDF/JPG/PNG).</div>
+
+      <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+
+        <div class="mb-3">
+          <label class="form-label">Student (search by name or email)</label>
+          <input id="student_search" name="student_search" class="form-control" autocomplete="off" placeholder="Search for registered students">
+          <div id="student_suggestions" class="list-group mt-1 suggestions" style="display:none;"></div>
+          <input type="hidden" id="student_email" name="student_email">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Student name</label>
+          <input id="student_name" name="student_name" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Description / Course</label>
+          <input id="description" name="description" class="form-control" placeholder="e.g., Python Basics Certificate">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Certificate file</label>
+          <input id="file" name="file" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+
+        <button class="btn btn-primary">Upload Certificate</button>
+      </form>
+    </div>
+
+    {% if code %}
+    <div class="card-ui">
+      <h6>Upload successful</h6>
+      <div class="d-flex align-items-center gap-3">
+        {% if qr %}
+        <img src="{{ url_for('static', filename='qrcodes/' ~ qr) }}" class="thumb-preview">
+        {% endif %}
+
+        <div>
+          <div class="mb-1 muted">Verification code</div>
+          <div class="d-flex gap-2">
+            <div class="code-box">{{ code }}</div>
+            <a class="btn btn-sm btn-outline-info" target="_blank" href="{{ url_for('verify') }}?code={{ code }}">Verify</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Your Uploads Tab -->
+  <div id="listTab" class="tab-content">
+    <div class="card-ui">
+      <h4>Your Uploads</h4>
+
+      {% if uploads %}
+      <div class="list-group mt-3">
+        {% for c in uploads %}
+        <div class="list-group-item d-flex justify-content-between align-items-start">
+          <div>
+            <strong>{{ c.student_name }}</strong> — <span class="small-muted">{{ c.student_email }}</span>
+            <div class="small-muted mt-1">
+              Code: <strong>{{ c.verification_code }}</strong> • Uploaded: {{ c.uploaded_at }}
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <a class="btn btn-sm btn-outline-info" target="_blank" href="{{ url_for('verify') }}?code={{ c.verification_code }}">Verify</a>
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('student_certificate_view', cert_id=c.id) }}">Preview</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="alert alert-info mt-3">No uploads yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Student search autocomplete
+(function(){
+  const searchEl = document.getElementById('student_search');
+  const suggestionsEl = document.getElementById('student_suggestions');
+  const studentEmailEl = document.getElementById('student_email');
+  const studentNameEl = document.getElementById('student_name');
+  let timer = null;
+
+  function clearSuggestions(){
+    suggestionsEl.style.display='none';
+    suggestionsEl.innerHTML='';
+  }
+
+  searchEl.addEventListener('input', function(){
+    clearTimeout(timer);
+    const q = this.value.trim();
+    if(!q){ clearSuggestions(); return; }
+
+    timer = setTimeout(async ()=>{
+      const res = await fetch('/api/student-search?q=' + encodeURIComponent(q));
+      if(!res.ok){ clearSuggestions(); return; }
+
+      const items = await res.json();
+      if(items.length === 0){
+        suggestionsEl.innerHTML = '<div class="list-group-item small-muted">No matches</div>';
+        suggestionsEl.style.display='block';
+        return;
+      }
+
+      suggestionsEl.innerHTML = items.map(it =>
+        `<button type="button" class="list-group-item list-group-item-action suggestion-item" 
+           data-email="${it.email}" data-name="${it.name}">
+           ${it.name} — ${it.email}
+         </button>`
+      ).join('');
+
+      suggestionsEl.style.display='block';
+
+      document.querySelectorAll('.suggestion-item').forEach(btn=>{
+        btn.onclick = () => {
+          const email = btn.dataset.email;
+          const name = btn.dataset.name;
+          searchEl.value = name + " — " + email;
+          studentEmailEl.value = email;
+          studentNameEl.value = name;
+          clearSuggestions();
+        };
+      });
+    }, 200);
+  });
+})();
+</script>
+{% endblock %}

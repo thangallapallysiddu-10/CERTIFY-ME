@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+<div data-aos="zoom-in" data-aos-duration="450" class="mx-auto" style="max-width:1200px;">
+  <h3 class="mb-3 text-center">Certificate Preview</h3>
+
+  <div class="card p-3 anim-card" data-aos="fade-up">
+    <div class="d-flex justify-content-between mb-3">
+      <div>
+        <strong>{{ cert.student_name }}</strong><br>
+        <small class="text-muted">Code: <b>{{ cert.verification_code }}</b> • Uploaded: {{ cert.uploaded_at }}</small>
+      </div>
+      <div><a class="btn btn-outline-primary btn-sm anim-btn" href="{{ url_for('student_dashboard') }}">Back</a></div>
+    </div>
+
+    <div id="preview-area" class="text-center" style="position:relative;">
+      {% if cert.thumbnail %}
+        <!-- hidden image loader -->
+        <img id="thumbSource" src="{{ url_for('serve_thumb', filename=cert.thumbnail) }}?v={{ cert.id }}" alt="thumb" style="display:none;" crossorigin="anonymous">
+        <!-- canvas where we draw the cert -->
+        <canvas id="certCanvas" class="canvas-fade" style="max-width:100%; width:100%; border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,0.08);"></canvas>
+
+        <!-- floating watermark / message -->
+        <div id="protectionNote" style="position:absolute; right:12px; top:12px; background:rgba(255,255,255,0.85); padding:6px 10px; border-radius:6px; font-size:0.85rem;">
+          View only — downloading disabled
+        </div>
+
+      {% elif cert.filename and cert.filename.lower().endswith('.pdf') %}
+        <!-- fallback: embed (note: browsers allow save) -->
+        <div style="width:100%; height:80vh;">
+          <iframe src="{{ url_for('uploaded_file', filename=cert.filename) }}" style="width:100%; height:100%; border:0;"></iframe>
+        </div>
+      {% else %}
+        <div class="small-muted">No preview available.</div>
+      {% endif %}
+    </div>
+
+    <div class="mt-3">
+      <small class="text-muted">Note: For best security use image uploads. PDFs can be downloaded by browsers.</small>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/*
+ Protection JS:
+ - Draws the thumbnail image to a canvas (prevents right-click saving of the original src)
+ - Disables context menu and several keyboard shortcuts
+ - Prevents dragging the canvas
+ - Note: determined users can still screenshot.
+*/
+
+(function(){
+  // disable right click on this page
+  document.addEventListener('contextmenu', function(e){
+    e.preventDefault();
+  }, {passive:false});
+
+  // disable some keys: F12, Ctrl+Shift+I, Ctrl+S, Ctrl+U, Ctrl+P
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'F12') { e.preventDefault(); return false; }
+    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) { e.preventDefault(); return false; }
+    if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) { e.preventDefault(); return false; }
+    if (e.ctrlKey && (e.key === 'S' || e.key === 's')) { e.preventDefault(); return false; }
+    if (e.ctrlKey && (e.key === 'P' || e.key === 'p')) { e.preventDefault(); return false; }
+  }, {passive:false});
+
+  // draw thumbnail to canvas
+  var thumb = document.getElementById('thumbSource');
+  var canvas = document.getElementById('certCanvas');
+
+  function drawThumb() {
+    try {
+      if (!thumb || !canvas) return;
+      var naturalW = thumb.naturalWidth || 1200;
+      var naturalH = thumb.naturalHeight || 800;
+
+      // choose a target width that's large but capped
+      var targetW = Math.min(1400, naturalW);
+      var scale = targetW / naturalW;
+      canvas.width = Math.round(naturalW * scale);
+      canvas.height = Math.round(naturalH * scale);
+
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      ctx.drawImage(thumb, 0, 0, canvas.width, canvas.height);
+
+      // watermark
+      ctx.save();
+      ctx.translate(canvas.width/2, canvas.height/2);
+      ctx.rotate(-0.35);
+      ctx.globalAlpha = 0.12;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#111';
+      ctx.font = Math.max(18, Math.floor(canvas.width/20)) + 'px sans-serif';
+      ctx.fillText('CERTIFYME — VIEW ONLY', 0, 0);
+      ctx.restore();
+
+      // show canvas fade-in
+      canvas.classList.add('show');
+
+      // prevent drag
+      canvas.addEventListener('dragstart', function(ev){ ev.preventDefault(); });
+      canvas.addEventListener('mousedown', function(ev){ ev.preventDefault(); });
+
+    } catch (err) {
+      console.error('Canvas draw failed', err);
+    }
+  }
+
+  if (thumb && canvas) {
+    thumb.addEventListener('load', function(){
+      drawThumb();
+    }, {passive:true});
+
+    if (thumb.complete && thumb.naturalWidth) {
+      drawThumb();
+    }
+  }
+
+  // hide attempts to open images via mouseup
+  document.addEventListener('mouseup', function(e){
+    if (e.target && e.target.tagName === 'IMG') e.preventDefault();
+  }, {passive:false});
+
+})();
+</script>
+{% endblock %}

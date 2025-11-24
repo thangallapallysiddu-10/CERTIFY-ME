@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div data-aos="fade-up" data-aos-delay="50">
+  <h4>Your Certificates</h4>
+</div>
+
+{% if certs %}
+  <div class="row g-3 mt-2">
+    {% for cert in certs %}
+      <div class="col-12" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 40 }}">
+        <div class="d-flex card p-2 align-items-center anim-card">
+          <div style="width:140px;flex-shrink:0;">
+            {% if cert.thumbnail %}
+              <div class="skeleton" id="skel-{{ cert.id }}" style="width:140px; height:90px; display:inline-block;"></div>
+              <img id="img-{{ cert.id }}" src="{{ url_for('serve_thumb', filename=cert.thumbnail) }}" style="width:140px; height:auto; border-radius:6px; display:none;" alt="preview"
+                   onload="(function(i,img){ var s = document.getElementById(i); if(s) s.remove(); img.style.display='inline-block'; })( 'skel-{{ cert.id }}', this );">
+            {% else %}
+              <div class="small-muted">No preview</div>
+            {% endif %}
+          </div>
+
+          <div class="ps-3" style="flex:1">
+            <div><strong>{{ cert.student_name }}</strong></div>
+            <div class="small-muted">Verification: <strong>{{ cert.verification_code }}</strong></div>
+            <div class="mt-2 d-flex gap-2">
+              <a class="btn btn-sm btn-outline-primary anim-btn" href="{{ url_for('student_certificate_view', cert_id=cert.id) }}">Open Preview</a>
+
+              {% if cert.public_token %}
+                <button class="btn btn-sm btn-outline-secondary anim-btn" onclick="copyShare('{{ request.url_root.rstrip('/') }}/public/{{ cert.public_token }}')">
+                  Copy link
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info mt-3">No certificates found.</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyShare(url) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function(){
+      showCopyToast('Share link copied ✨');
+    }).catch(function(){
+      prompt("Copy this link:", url);
+    });
+  } else {
+    prompt("Copy this link:", url);
+  }
+}
+</script>
+{% endblock %}

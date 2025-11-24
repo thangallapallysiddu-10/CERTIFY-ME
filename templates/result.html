@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+{% if cert %}
+  <div class="mb-3">
+    {% if tampered %}
+      <h4 class="text-danger">⚠️ Verification Suspicious / Tampered</h4>
+      <p>The uploaded file was modified or is missing. Do not trust this file as-is.</p>
+      <div class="mb-2"><strong>Checks:</strong></div>
+      <ul>
+        <li>SHA-256 match: {{ 'OK' if hash_ok else 'FAILED' }}</li>
+        <li>Signature valid: {{ 'OK' if sig_ok else 'FAILED' }}</li>
+      </ul>
+    {% else %}
+      <h4 class="text-success">Verified ✅</h4>
+    {% endif %}
+
+    <div class="mb-2"><strong>Student:</strong> {{ cert['student_name'] }}</div>
+    <div class="mb-1"><strong>Description:</strong> {{ cert['description'] or '-' }}</div>
+    <div class="mb-1"><strong>Uploaded by:</strong> {{ cert['uploaded_by'] }}</div>
+    <div class="mb-1"><strong>Uploaded at:</strong> {{ cert['uploaded_at'] }}</div>
+    <div class="mb-1"><strong>Code:</strong> {{ cert['verification_code'] }}</div>
+
+    <div class="mt-3">
+      <a class="btn btn-outline-primary" href="{{ url_for('uploaded_file', filename=cert['filename']) }}" target="_blank">Open Certificate</a>
+      <a class="btn btn-secondary" href="{{ url_for('verify') }}">Verify another</a>
+    </div>
+  </div>
+
+  {% if cert['filename'].lower().endswith(('.png','.jpg','.jpeg')) %}
+    <div>
+      <div class="mb-2"><strong>Image preview:</strong></div>
+      <img src="{{ url_for('uploaded_file', filename=cert['filename']) }}" class="preview-img" alt="certificate">
+    </div>
+  {% endif %}
+
+  {% if audits %}
+    <hr>
+    <div class="mb-2"><strong>Recent actions (audit):</strong></div>
+    <ul>
+      {% for a in audits %}
+        <li>{{ a['created_at'] }} — {{ a['action'] }} by {{ a['actor'] }} (ip: {{ a['ip'] }})</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% else %}
+  <h4 class="text-danger">Not Found ✖</h4>
+  <p>No certificate found for code <strong>{{ code }}</strong></p>
+  <a class="btn btn-outline-primary" href="{{ url_for('upload') }}">Upload a certificate</a>
+  <a class="btn btn-outline-secondary" href="{{ url_for('verify') }}">Try again</a>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mx-auto" style="max-width:800px;">
+  <div class="alert alert-warning">No certificate found for token: <code>{{ token }}</code></div>
+  <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to home</a>
+</div>
+{% endblock %}

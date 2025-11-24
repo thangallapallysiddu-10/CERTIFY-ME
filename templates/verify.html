@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="post" class="mb-3" id="verifyForm">
+  <div class="mb-3">
+    <label class="form-label">Enter Verification Code</label>
+    <input class="form-control" name="verification_code" placeholder="e.g. YUVA-3D9X2" required>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-success">Verify</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('upload') }}">Upload a Cert</a>
+  </div>
+</form>
+
+<div class="text-muted small mt-2">Tip: Try the demo code YUVA-DEMO1 if seeded.</div>
+{% endblock %}

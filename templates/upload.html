@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .suggestions { max-height: 220px; overflow: auto; z-index: 1200; }
+  .thumb-preview { max-width: 180px; border-radius: 8px; border: 1px solid #eee; }
+  .muted { color: #6b7280; }
+  .code-box { background:#0b2447; color:#fff; padding:8px 10px; border-radius:6px; font-family: monospace; display:inline-block; }
+</style>
+
+<div class="mb-3">
+  <h4>Upload Certificate</h4>
+  <div class="small-muted">Fill student details, attach certificate (PDF/JPG/PNG), and upload.</div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="mb-4">
+  <div class="mb-3">
+    <label for="student_search" class="form-label">Student (search by name or email)</label>
+    <input id="student_search" name="student_search" class="form-control" autocomplete="off" placeholder="Type name or email to search registered students">
+    <div id="student_suggestions" class="list-group mt-1 suggestions" style="display:none; position:relative;"></div>
+    <input type="hidden" id="student_id" name="student_id" value="">
+    <input type="hidden" id="student_email" name="student_email" value="">
+  </div>
+
+  <div class="mb-3">
+    <label for="student_name" class="form-label">Student name</label>
+    <input id="student_name" name="student_name" class="form-control" placeholder="Full name (required)" required>
+  </div>
+
+  <div class="mb-3">
+    <label for="description" class="form-label">Description / Course</label>
+    <input id="description" name="description" class="form-control" placeholder="e.g., Python Basics Certificate">
+  </div>
+
+  <div class="mb-3">
+    <label for="file" class="form-label">Certificate file (pdf / jpg / png)</label>
+    <input id="file" name="file" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+    <div class="form-text muted">Recommended: small PDFs or images for demo.</div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary" type="submit">Upload Certificate</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Cancel</a>
+  </div>
+</form>
+
+{% if code %}
+  <div class="card p-3 mb-3">
+    <h6>Upload successful</h6>
+    <div class="d-flex align-items-center gap-3">
+      {% if qr %}
+        <img src="{{ url_for('static', filename='qrcodes/' ~ qr) }}" class="thumb-preview" alt="QR code">
+      {% endif %}
+      <div>
+        <div class="mb-1 muted">Verification code</div>
+        <div class="d-flex align-items-center gap-2">
+          <div class="code-box" id="verCode">{{ code }}</div>
+          <button class="btn btn-sm btn-outline-secondary" id="copyCode">Copy</button>
+          <a class="btn btn-sm btn-outline-info" target="_blank" id="openVerify" href="{{ url_for('verify') }}?code={{ code }}">Open verification page</a>
+        </div>
+        <div class="mt-2 small-muted">Share the verification code or QR to allow third parties to verify authenticity.</div>
+      </div>
+    </div>
+
+    {% if filename %}
+      <div class="mt-3 small-muted">Saved file: {{ filename }}</div>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  const searchEl = document.getElementById('student_search');
+  const suggestionsEl = document.getElementById('student_suggestions');
+  const studentIdEl = document.getElementById('student_id');
+  const studentEmailEl = document.getElementById('student_email');
+  const studentNameEl = document.getElementById('student_name');
+  let timer = null;
+
+  function clearSuggestions() {
+    suggestionsEl.style.display = 'none';
+    suggestionsEl.innerHTML = '';
+  }
+
+  function showSuggestions(items) {
+    if (!items || items.length === 0) {
+      suggestionsEl.innerHTML = '<div class="list-group-item small-muted">No matches</div>';
+      suggestionsEl.style.display = 'block';
+      return;
+    }
+    suggestionsEl.innerHTML = items.map(it=>{
+      const safeName = it.name || '';
+      const safeEmail = it.email || '';
+      return `<button type="button" class="list-group-item list-group-item-action suggestion-item" data-email="${safeEmail}" data-name="${safeName}">${safeName} — ${safeEmail}</button>`;
+    }).join('');
+    suggestionsEl.style.display = 'block';
+    document.querySelectorAll('.suggestion-item').forEach(btn=>{
+      btn.addEventListener('click', function(){
+        const email = this.getAttribute('data-email');
+        const name = this.getAttribute('data-name');
+        searchEl.value = name + " — " + email;
+        studentEmailEl.value = email;
+        studentNameEl.value = name;
+        studentIdEl.value = "";
+        clearSuggestions();
+      });
+    });
+  }
+
+  searchEl.addEventListener('input', function(){
+    clearTimeout(timer);
+    studentIdEl.value = "";
+    studentEmailEl.value = "";
+    const q = this.value.trim();
+    if (!q) { clearSuggestions(); return; }
+    timer = setTimeout(async ()=>{
+      try {
+        const res = await fetch('/api/student-search?q=' + encodeURIComponent(q));
+        if (!res.ok) { clearSuggestions(); return; }
+        const items = await res.json();
+        showSuggestions(items);
+      } catch(err) {
+        console.error(err);
+        clearSuggestions();
+      }
+    }, 220);
+  });
+
+  document.addEventListener('click', function(ev){
+    if (!suggestionsEl.contains(ev.target) && ev.target !== searchEl) {
+      clearSuggestions();
+    }
+  });
+
+  searchEl.addEventListener('blur', function(){
+    const v = this.value.trim();
+    if (v.includes('@') && v.includes('.')) {
+      studentEmailEl.value = v.toLowerCase();
+    }
+  });
+
+  const copyBtn = document.getElementById('copyCode');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function(){
+      const codeEl = document.getElementById('verCode');
+      if (!codeEl) return;
+      const text = codeEl.textContent.trim();
+      navigator.clipboard?.writeText(text).then(()=>{
+        copyBtn.textContent = 'Copied';
+        setTimeout(()=> copyBtn.textContent = 'Copy', 1400);
+      }).catch(()=> {
+        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); copyBtn.textContent = 'Copied'; } catch(e) {}
+        ta.remove();
+        setTimeout(()=> copyBtn.textContent = 'Copy', 1400);
+      });
+    });
+  }
+})();
+</script>
+{% endblock %}
