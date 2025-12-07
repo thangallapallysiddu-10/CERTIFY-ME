@@ -761,11 +761,8 @@ def _seed_student():
     db.close()
     return msg
 
+# ----------------- ENTRYPOINT -----------------
 if __name__ == "__main__":
-    print("CertifyMe starting. Upload folder:", UPLOAD_DIR)
-    app.run(debug=True, port=5000)
-if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
-    print("CertifyMe starting. Upload folder:", UPLOAD_DIR)
-    app.run(debug=True, port=port, host="0.0.0.0")
+    print(f"CertifyMe starting on 0.0.0.0:{port}. Upload folder: {UPLOAD_DIR}")
+    app.run(debug=True, host="0.0.0.0", port=port)
