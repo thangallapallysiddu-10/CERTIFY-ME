@@ -1,37 +1,210 @@
 {% extends "base.html" %}
+{% set active_page = 'student' %}
+
 {% block content %}
-<div data-aos="fade-up" data-aos-delay="50">
-  <h4>Your Certificates</h4>
+<style>
+  .student-cert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .student-cert-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  .student-cert-subtitle {
+    font-size: 0.86rem;
+    color: var(--text-soft);
+  }
+
+  .student-cert-card {
+    border-radius: 18px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: radial-gradient(circle at 0% 0%, rgba(0,234,255,0.15), transparent 55%),
+                rgba(0,0,0,0.9);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.9);
+    transition: 0.22s ease-out;
+  }
+
+  .student-cert-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(0,234,255,0.7);
+    box-shadow:
+      0 26px 60px rgba(0,0,0,0.95),
+      0 0 22px rgb(0, 0, 0);
+  }
+
+  .student-cert-thumb-wrap {
+    width: 150px;
+    flex-shrink: 0;
+  }
+
+  .student-cert-thumb-img {
+    width: 150px;
+    height: auto;
+    border-radius: 10px;
+  }
+
+  .student-cert-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .student-cert-name {
+    font-weight: 600;
+    font-size: 0.98rem;
+  }
+
+  .student-cert-line {
+    font-size: 0.82rem;
+    color: var(--text-soft);
+  }
+
+  .student-cert-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    font-size: 0.78rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.95);
+    border: 1px solid rgba(0,234,255,0.6);
+    color: #e0faff;
+    display: inline-block;
+    margin-left: 4px;
+  }
+
+  .student-cert-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.7rem;
+  }
+
+  .btn-cert-primary {
+    border-radius: 999px;
+    font-size: 0.8rem;
+    padding: 0.38rem 0.95rem;
+    border: none;
+    background: linear-gradient(135deg, var(--glow-1), var(--glow-2));
+    color: #000;
+    box-shadow: 0 0 10px rgba(0,234,255,0.45);
+  }
+
+  .btn-cert-primary:hover {
+    filter: brightness(1.03);
+    box-shadow: 0 0 14px rgba(0,234,255,0.6);
+  }
+
+  .btn-cert-ghost {
+    border-radius: 999px;
+    font-size: 0.8rem;
+    padding: 0.38rem 0.95rem;
+    border: 1px solid rgba(148,163,184,0.7);
+    background: rgba(15,23,42,0.95);
+    color: var(--text-main);
+  }
+
+  .btn-cert-ghost:hover {
+    border-color: rgba(0,234,255,0.8);
+    background: rgba(15,23,42,1);
+  }
+
+  @media (max-width: 575.98px) {
+    .student-cert-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .student-cert-thumb-wrap {
+      width: 100%;
+    }
+    .student-cert-thumb-img {
+      width: 100%;
+      max-width: 220px;
+    }
+  }
+</style>
+
+<div class="student-cert-header" data-aos="fade-up" data-aos-delay="40">
+  <div>
+    <div class="page-kicker mb-1">Student vault</div>
+    <h1 class="student-cert-title mb-1">Your certificates</h1>
+    <p class="student-cert-subtitle mb-0">
+      All credentials that were issued to your email are listed here with secure public links.
+    </p>
+  </div>
 </div>
 
 {% if certs %}
-  <div class="row g-3 mt-2">
+  <div class="row g-3 mt-1">
     {% for cert in certs %}
-      <div class="col-12" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 40 }}">
-        <div class="d-flex card p-2 align-items-center anim-card">
-          <div style="width:140px;flex-shrink:0;">
+      <div class="col-12" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 50 }}">
+        <div class="student-cert-card anim-card">
+
+          <div class="student-cert-thumb-wrap">
             {% if cert.thumbnail %}
-              <div class="skeleton" id="skel-{{ cert.id }}" style="width:140px; height:90px; display:inline-block;"></div>
-              <img id="img-{{ cert.id }}" src="{{ url_for('serve_thumb', filename=cert.thumbnail) }}" style="width:140px; height:auto; border-radius:6px; display:none;" alt="preview"
-                   onload="(function(i,img){ var s = document.getElementById(i); if(s) s.remove(); img.style.display='inline-block'; })( 'skel-{{ cert.id }}', this );">
+              <div class="skeleton" id="skel-{{ cert.id }}" style="width:150px; height:95px; display:inline-block;"></div>
+              <img
+                id="img-{{ cert.id }}"
+                src="{{ url_for('serve_thumb', filename=cert.thumbnail) }}"
+                class="student-cert-thumb-img"
+                alt="Certificate preview"
+                style="display:none;"
+                onload="(function(i,img){ var s=document.getElementById(i); if(s) s.remove(); img.style.display='inline-block'; })('skel-{{ cert.id }}', this);"
+              >
             {% else %}
-              <div class="small-muted">No preview</div>
+              <div class="small-muted">No preview available</div>
             {% endif %}
           </div>
 
-          <div class="ps-3" style="flex:1">
-            <div><strong>{{ cert.student_name }}</strong></div>
-            <div class="small-muted">Verification: <strong>{{ cert.verification_code }}</strong></div>
-            <div class="mt-2 d-flex gap-2">
-              <a class="btn btn-sm btn-outline-primary anim-btn" href="{{ url_for('student_certificate_view', cert_id=cert.id) }}">Open Preview</a>
+          <div class="student-cert-meta">
+            <div class="student-cert-name">{{ cert.student_name or 'Certificate' }}</div>
+
+            {% if cert.description %}
+              <div class="student-cert-line">
+                {{ cert.description }}
+              </div>
+            {% endif %}
+
+            <div class="student-cert-line mt-1">
+              Verification
+              <span class="student-cert-code">{{ cert.verification_code }}</span>
+            </div>
+
+            {% if cert.uploaded_at %}
+              <div class="student-cert-line mt-1">
+                Issued at {{ cert.uploaded_at }}
+              </div>
+            {% endif %}
+
+            <div class="student-cert-actions">
+              <a
+                class="btn btn-cert-primary"
+                href="{{ url_for('student_certificate_view', cert_id=cert.id) }}"
+              >
+                Open preview
+              </a>
 
               {% if cert.public_token %}
-                <button class="btn btn-sm btn-outline-secondary anim-btn" onclick="copyShare('{{ request.url_root.rstrip('/') }}/public/{{ cert.public_token }}')">
-                  Copy link
+                <button
+                  type="button"
+                  class="btn btn-cert-ghost"
+                  onclick="copyShare('{{ request.url_root.rstrip('/') }}/public/{{ cert.public_token }}')"
+                >
+                  Copy share link
                 </button>
               {% endif %}
             </div>
           </div>
+
         </div>
       </div>
     {% endfor %}
@@ -45,9 +218,13 @@
 <script>
 function copyShare(url) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(function(){
-      showCopyToast('Share link copied ✨');
-    }).catch(function(){
+    navigator.clipboard.writeText(url).then(function () {
+      if (typeof showCopyToast === "function") {
+        showCopyToast("Share link copied ✨");
+      } else {
+        alert("Share link copied ✨");
+      }
+    }).catch(function () {
       prompt("Copy this link:", url);
     });
   } else {

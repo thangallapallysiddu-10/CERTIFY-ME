@@ -124,6 +124,32 @@ def insert_audit(certificate_id, action, actor, ip):
     db.commit()
     db.close()
 
+def get_platform_stats():
+    """Basic stats for the home page."""
+    db = get_db()
+    stats = {}
+    stats["total_certs"] = db.execute(
+        "SELECT COUNT(*) AS c FROM certificates"
+    ).fetchone()["c"]
+    stats["total_teachers"] = db.execute(
+        "SELECT COUNT(*) AS c FROM teachers"
+    ).fetchone()["c"]
+    stats["total_students"] = db.execute(
+        "SELECT COUNT(*) AS c FROM students"
+    ).fetchone()["c"]
+
+    today_str = datetime.now().strftime("%Y-%m-%d 00:00:00")
+    stats["verifications_today"] = db.execute(
+        "SELECT COUNT(*) AS c FROM audit_logs WHERE action = 'verify' AND created_at >= ?",
+        (today_str,)
+    ).fetchone()["c"]
+
+    # You don't have an institutes table, so treat teachers as institutes for now
+    stats["total_institutes"] = stats["total_teachers"]
+
+    db.close()
+    return stats
+
 # ----------------- SECURITY HELPERS -----------------
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
@@ -149,8 +175,10 @@ def verify_signature(hex_hash, signature):
         return False
 
 def gen_verification_code(length=8):
+    # Codes like: CFM-9A72KQ4G
     chars = string.ascii_uppercase + string.digits
-    return "YUVA-" + "".join(random.choice(chars) for _ in range(length))
+    code = ''.join(random.choice(chars) for _ in range(length))
+    return f"CFM-{code}"
 
 def make_qr(code, filename_prefix):
     try:
@@ -175,17 +203,17 @@ def create_thumbnail(save_path, ts):
         ext = save_path.rsplit(".", 1)[1].lower()
         thumb_name = f"{ts}_thumb.png"
         thumb_path = os.path.join(THUMB_DIR, thumb_name)
-        if ext in ("png","jpg","jpeg"):
+        if ext in ("png", "jpg", "jpeg"):
             img = Image.open(save_path).convert("RGB")
-            img.thumbnail((1200,1200), Image.LANCZOS)
+            img.thumbnail((1200, 1200), Image.LANCZOS)
             draw = ImageDraw.Draw(img)
             try:
-                draw.text((10, img.height-30), "View Only", fill=(200,200,200))
+                draw.text((10, img.height - 30), "View Only", fill=(200, 200, 200))
             except Exception:
                 pass
             img.save(thumb_path, "PNG", optimize=True)
             return thumb_name
-        # skip PDFs here; use PyMuPDF backfill or inline PDF view
+        # skip PDFs here
         return None
     except Exception as e:
         print("Thumb error:", e)
@@ -209,24 +237,39 @@ def admin_required(fn):
     return wrapper
 
 # ----------------- ROUTES -----------------
+# Landing at /
 @app.route("/")
-def index():
-    return render_template("index.html")
+def root_page():
+    # If you have a separate how_it_works.html, use it,
+    # otherwise you can redirect to index() instead.
+    return render_template("how_it_works.html")
 
-# Teacher register/login
-@app.route("/register", methods=["GET","POST"])
+# Home (index) page (Deepgram-style hero)
+@app.route("/home")
+def index():
+    stats = get_platform_stats()
+    return render_template("index.html", stats=stats)
+
+@app.route("/how-it-works")
+def how_it_works():
+    return render_template("how_it_works.html")
+
+# -------- Teacher register/login --------
+@app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        name = request.form.get("name","").strip()
-        email = request.form.get("email","").strip().lower()
-        password = request.form.get("password","")
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
         if not (name and email and password):
             flash("All fields required", "danger")
             return redirect(request.url)
         db = get_db()
         try:
-            db.execute("INSERT INTO teachers (name,email,password_hash) VALUES (?,?,?)",
-                       (name,email, generate_password_hash(password)))
+            db.execute(
+                "INSERT INTO teachers (name,email,password_hash) VALUES (?,?,?)",
+                (name, email, generate_password_hash(password))
+            )
             db.commit()
             flash("Teacher registered. Please login.", "success")
             return redirect(url_for("login"))
@@ -236,13 +279,16 @@ def register():
             db.close()
     return render_template("register.html")
 
-@app.route("/login", methods=["GET","POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email","").strip().lower()
-        password = request.form.get("password","")
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
         db = get_db()
-        row = db.execute("SELECT id,name,email,password_hash FROM teachers WHERE lower(email)=?", (email,)).fetchone()
+        row = db.execute(
+            "SELECT id,name,email,password_hash FROM teachers WHERE lower(email)=?",
+            (email,)
+        ).fetchone()
         db.close()
 
         if row and check_password_hash(row["password_hash"], password):
@@ -250,11 +296,11 @@ def login():
             session["teacher_id"] = row["id"]
             session["teacher_name"] = row["name"]
             session["teacher_email"] = row["email"]
+            session["user_id"] = row["id"]
+            session["role"] = "teacher"
 
             insert_audit(None, "teacher_login", row["email"], request.remote_addr or "unknown")
             flash("Logged in.", "success")
-
-            # Redirect teacher to their dashboard (fixed)
             return redirect(url_for("teacher_dashboard"))
 
         flash("Invalid credentials", "danger")
@@ -269,21 +315,23 @@ def logout():
         insert_audit(None, "logout", user, request.remote_addr or "unknown")
     return redirect(url_for("index"))
 
-# Student auth
-@app.route("/student/register", methods=["GET","POST"])
+# -------- Student auth --------
+@app.route("/student/register", methods=["GET", "POST"])
 def student_register():
     if request.method == "POST":
-        name = request.form.get("name","").strip()
-        roll_no = request.form.get("roll_no","").strip()
-        email = request.form.get("email","").strip().lower()
-        password = request.form.get("password","")
+        name = request.form.get("name", "").strip()
+        roll_no = request.form.get("roll_no", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
         if not (name and email and password):
             flash("All fields required", "danger")
             return redirect(request.url)
         db = get_db()
         try:
-            db.execute("INSERT INTO students (name,roll_no,email,password_hash) VALUES (?,?,?,?)",
-                       (name,roll_no,email, generate_password_hash(password)))
+            db.execute(
+                "INSERT INTO students (name,roll_no,email,password_hash) VALUES (?,?,?,?)",
+                (name, roll_no, email, generate_password_hash(password))
+            )
             db.commit()
             flash("Student registered. Please login.", "success")
             return redirect(url_for("student_login"))
@@ -293,19 +341,25 @@ def student_register():
             db.close()
     return render_template("student_register.html")
 
-@app.route("/student/login", methods=["GET","POST"])
+@app.route("/student/login", methods=["GET", "POST"])
 def student_login():
     if request.method == "POST":
-        email = request.form.get("email","").strip().lower()
-        password = request.form.get("password","")
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
         db = get_db()
-        row = db.execute("SELECT id,name,email,password_hash FROM students WHERE lower(email)=?", (email,)).fetchone()
+        row = db.execute(
+            "SELECT id,name,email,password_hash FROM students WHERE lower(email)=?",
+            (email,)
+        ).fetchone()
         db.close()
         if row and check_password_hash(row["password_hash"], password):
             session.clear()
             session["student_id"] = row["id"]
             session["student_name"] = row["name"]
             session["student_email"] = row["email"]
+            session["user_id"] = row["id"]
+            session["role"] = "student"
+
             insert_audit(None, "student_login", row["email"], request.remote_addr or "unknown")
             flash("Student logged in.", "success")
             return redirect(url_for("student_dashboard"))
@@ -314,29 +368,33 @@ def student_login():
 
 @app.route("/student/logout")
 def student_logout():
-    email = session.get("student_email")
-    session.pop("student_id", None)
-    session.pop("student_name", None)
-    session.pop("student_email", None)
+    user = session.get("student_email") or session.get("student_name")
+    session.clear()
     flash("Student logged out.", "info")
-    if email:
-        insert_audit(None, "student_logout", email, request.remote_addr or "unknown")
+    if user:
+        insert_audit(None, "student_logout", user, request.remote_addr or "unknown")
     return redirect(url_for("index"))
 
-# Admin auth
-@app.route("/admin/login", methods=["GET","POST"])
+# -------- Admin auth --------
+@app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
-        email = request.form.get("email","").strip().lower()
-        password = request.form.get("password","")
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
         db = get_db()
-        row = db.execute("SELECT id,name,password_hash FROM admins WHERE lower(email)=?", (email,)).fetchone()
+        row = db.execute(
+            "SELECT id,name,password_hash,email FROM admins WHERE lower(email)=?",
+            (email,)
+        ).fetchone()
         db.close()
         if row and check_password_hash(row["password_hash"], password):
             session.clear()
             session["admin_id"] = row["id"]
             session["admin_name"] = row["name"]
-            insert_audit(None, "admin_login", row["name"], request.remote_addr or "unknown")
+            session["user_id"] = row["id"]
+            session["role"] = "admin"
+
+            insert_audit(None, "admin_login", row["email"], request.remote_addr or "unknown")
             flash("Admin logged in.", "success")
             return redirect(url_for("admin_dashboard"))
         flash("Invalid admin credentials", "danger")
@@ -344,24 +402,26 @@ def admin_login():
 
 @app.route("/admin/logout")
 def admin_logout():
-    name = session.get("admin_name")
-    session.pop("admin_id", None)
-    session.pop("admin_name", None)
+    user = session.get("admin_name")
+    session.clear()
     flash("Admin logged out.", "info")
-    if name:
-        insert_audit(None, "admin_logout", name, request.remote_addr or "unknown")
+    if user:
+        insert_audit(None, "admin_logout", user, request.remote_addr or "unknown")
     return redirect(url_for("index"))
 
-# Upload route (teacher only) with thumbnail + student lookup + public token
-@app.route("/upload", methods=["GET","POST"])
+# -------- Upload route (teacher only) --------
+@app.route("/upload", methods=["GET", "POST"])
 @teacher_required
 def upload():
     db = get_db()
-    teacher_row = db.execute("SELECT id,name,email FROM teachers WHERE id = ?", (session.get("teacher_id"),)).fetchone()
+    teacher_row = db.execute(
+        "SELECT id,name,email FROM teachers WHERE id = ?",
+        (session.get("teacher_id"),)
+    ).fetchone()
     if request.method == "POST":
-        student_name = request.form.get("student_name","").strip()
-        student_email = request.form.get("student_email","").strip().lower()
-        description = request.form.get("description","").strip()
+        student_name = request.form.get("student_name", "").strip()
+        student_email = request.form.get("student_email", "").strip().lower()
+        description = request.form.get("description", "").strip()
         file = request.files.get("file")
         if not student_name or not student_email:
             flash("Student name & email required (use autosuggest)", "danger")
@@ -387,7 +447,10 @@ def upload():
 
         # find student id if exists by email
         student_id = None
-        srow = db.execute("SELECT id FROM students WHERE lower(email)=?", (student_email,)).fetchone()
+        srow = db.execute(
+            "SELECT id FROM students WHERE lower(email)=?",
+            (student_email,)
+        ).fetchone()
         if srow:
             student_id = srow["id"]
 
@@ -419,7 +482,10 @@ def upload():
                 public_token
             ))
             db.commit()
-            cert_row = db.execute("SELECT id FROM certificates WHERE verification_code = ?", (code,)).fetchone()
+            cert_row = db.execute(
+                "SELECT id FROM certificates WHERE verification_code = ?",
+                (code,)
+            ).fetchone()
             cert_id = cert_row["id"] if cert_row else None
             insert_audit(cert_id, "upload", teacher_row["email"], request.remote_addr or "unknown")
             qr_file = make_qr(code, ts)
@@ -433,24 +499,45 @@ def upload():
     db.close()
     return render_template("upload.html")
 
-# Verify (public form)
-@app.route("/verify", methods=["GET","POST"])
-def verify():
-    code = request.args.get("code") or request.form.get("verification_code")
-    if not code:
-        return render_template("verify.html")
+# -------- Verify (public form + result in same template) --------
+@app.route("/verify", methods=["GET", "POST"])
+def verify_certificate():
+    # Support old param name "verification_code" and new "query", plus ?code=
+    query = (
+        request.args.get("code")
+        or request.form.get("query")
+        or request.form.get("verification_code")
+    )
+
+    if not query:
+        return render_template("verify.html", result=None)
+
+    code = query.strip().upper()
     db = get_db()
-    cert = db.execute("SELECT * FROM certificates WHERE verification_code = ?", (code.strip().upper(),)).fetchone()
+    cert = db.execute(
+        "SELECT * FROM certificates WHERE verification_code = ?",
+        (code,)
+    ).fetchone()
     db.close()
+
     if not cert:
-        return render_template("result.html", cert=None, code=code)
-    file_path = os.path.join(UPLOAD_DIR, cert["filename"])
-    file_exists = os.path.exists(file_path)
+        result = {
+            "valid": False,
+            "certificate_id": code,
+            "student_name": None,
+            "course": None,
+        }
+        return render_template("verify.html", result=result)
+
+    file_path = os.path.join(UPLOAD_DIR, cert["filename"]) if cert["filename"] else None
+    file_exists = file_path and os.path.exists(file_path)
     stored_hash = cert["file_hash"] or ""
     stored_sig = cert["file_signature"] or cert["signature"] or ""
-    tampered = True
+
     hash_ok = False
     sig_ok = False
+    tampered = True
+
     if file_exists and stored_hash:
         current_hash = compute_sha256(file_path)
         hash_ok = (current_hash == stored_hash)
@@ -458,13 +545,36 @@ def verify():
         tampered = not (hash_ok and sig_ok)
     else:
         tampered = True
-    insert_audit(cert["id"], "verify", request.remote_addr or "public", request.remote_addr or "unknown")
-    return render_template("result.html", cert=cert, tampered=tampered, hash_ok=hash_ok, sig_ok=sig_ok)
 
-# API for student autosuggest
+    insert_audit(
+        cert["id"],
+        "verify",
+        request.remote_addr or "public",
+        request.remote_addr or "unknown",
+    )
+
+    valid = not tampered
+
+    result = {
+        "valid": valid,
+        "student_name": cert["student_name"],
+        "course": cert["description"] or "Certificate",
+        "certificate_id": cert["verification_code"],
+        "issued_at": cert["uploaded_at"],
+        "teacher_name": cert["uploaded_by_name"] or "Issuer",
+        "institute_name": "CertifyMe Partner",
+        "score": None,
+        "tampered": tampered,
+        "hash_ok": hash_ok,
+        "sig_ok": sig_ok,
+    }
+
+    return render_template("verify.html", result=result)
+
+# -------- API for student autosuggest --------
 @app.route("/api/student-search")
 def api_student_search():
-    q = request.args.get("q","").strip().lower()
+    q = request.args.get("q", "").strip().lower()
     if not q:
         return jsonify([])
     db = get_db()
@@ -476,13 +586,16 @@ def api_student_search():
     results = [{"email": r["email"], "name": r["name"]} for r in rows]
     return jsonify(results)
 
-# Student dashboard
+# -------- Student dashboard --------
 @app.route("/student/dashboard")
 def student_dashboard():
     if "student_id" not in session:
         return redirect(url_for("student_login"))
     db = get_db()
-    student = db.execute("SELECT * FROM students WHERE id = ?", (session["student_id"],)).fetchone()
+    student = db.execute(
+        "SELECT * FROM students WHERE id = ?",
+        (session["student_id"],)
+    ).fetchone()
     if not student:
         db.close()
         flash("Student record not found", "danger")
@@ -500,8 +613,14 @@ def student_certificate_view(cert_id):
     if "student_id" not in session:
         return redirect(url_for("student_login"))
     db = get_db()
-    cert = db.execute("SELECT * FROM certificates WHERE id = ?", (cert_id,)).fetchone()
-    student = db.execute("SELECT * FROM students WHERE id = ?", (session["student_id"],)).fetchone()
+    cert = db.execute(
+        "SELECT * FROM certificates WHERE id = ?",
+        (cert_id,)
+    ).fetchone()
+    student = db.execute(
+        "SELECT * FROM students WHERE id = ?",
+        (session["student_id"],)
+    ).fetchone()
     db.close()
     if not cert:
         flash("Certificate not found", "danger")
@@ -512,29 +631,28 @@ def student_certificate_view(cert_id):
     insert_audit(cert_id, "student_view", student["email"], request.remote_addr or "unknown")
     return render_template("student_certificate_view.html", cert=cert)
 
-# Serve thumbnail (protected)
+# -------- File serving --------
 @app.route("/thumbs/<path:filename>")
 def serve_thumb(filename):
-    # allow only logged-in users OR public viewing
-    # public_view uses thumbnail URL too, so we don't enforce login here
-    # but you can enforce stricter controls as needed
     return send_from_directory(THUMB_DIR, filename, as_attachment=False)
 
-# Serve uploaded files (public route; embedded in iframe when needed)
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_DIR, filename)
 
-# Teacher dashboard (list uploads)
+# -------- Teacher dashboard --------
 @app.route("/teacher/dashboard")
 @teacher_required
 def teacher_dashboard():
     db = get_db()
-    uploads = db.execute("SELECT * FROM certificates WHERE uploaded_by = ? ORDER BY uploaded_at DESC", (session.get("teacher_id"),)).fetchall()
+    uploads = db.execute(
+        "SELECT * FROM certificates WHERE uploaded_by = ? ORDER BY uploaded_at DESC",
+        (session.get("teacher_id"),)
+    ).fetchall()
     db.close()
     return render_template("teacher_dashboard.html", uploads=uploads)
 
-# Admin dashboard
+# -------- Admin dashboard --------
 @app.route("/admin/dashboard")
 @admin_required
 def admin_dashboard():
@@ -546,18 +664,30 @@ def admin_dashboard():
         LEFT JOIN teachers t ON t.id = c.uploaded_by
         ORDER BY c.uploaded_at DESC LIMIT 200
     """).fetchall()
-    teachers = db.execute("SELECT id, name, email, created_at FROM teachers ORDER BY id DESC LIMIT 200").fetchall()
-    students = db.execute("SELECT id, name, email, created_at FROM students ORDER BY id DESC LIMIT 200").fetchall()
+    teachers = db.execute(
+        "SELECT id, name, email, created_at FROM teachers ORDER BY id DESC LIMIT 200"
+    ).fetchall()
+    students = db.execute(
+        "SELECT id, name, email, created_at FROM students ORDER BY id DESC LIMIT 200"
+    ).fetchall()
     db.close()
-    insert_audit(None, "admin_view_dashboard", session.get("admin_name") or "admin", request.remote_addr or "unknown")
+    insert_audit(
+        None,
+        "admin_view_dashboard",
+        session.get("admin_name") or "admin",
+        request.remote_addr or "unknown"
+    )
     return render_template("admin_dashboard.html", audits=audits, uploads=uploads, teachers=teachers, students=students)
 
-# Public certificate view (no download)
+# -------- Public certificate view --------
 @app.route("/public/<token>")
 def public_view(token):
     token = token.strip()
     db = get_db()
-    cert = db.execute("SELECT * FROM certificates WHERE public_token = ?", (token,)).fetchone()
+    cert = db.execute(
+        "SELECT * FROM certificates WHERE public_token = ?",
+        (token,)
+    ).fetchone()
     db.close()
     if not cert:
         return render_template("public_not_found.html", token=token), 404
@@ -582,13 +712,16 @@ def public_view(token):
 
     return render_template("public_view.html", cert=cert, tampered=tampered, hash_ok=hash_ok, sig_ok=sig_ok)
 
-# Dev seed routes
+# -------- Dev seed routes --------
 @app.route("/_seed_admin")
 def _seed_admin():
     db = get_db()
     try:
         pw = generate_password_hash("adminpass123")
-        db.execute("INSERT INTO admins (name, email, password_hash) VALUES (?, ?, ?)", ("Super Admin", "admin@example.com", pw))
+        db.execute(
+            "INSERT INTO admins (name, email, password_hash) VALUES (?, ?, ?)",
+            ("Super Admin", "admin@example.com", pw)
+        )
         db.commit()
         msg = "Admin seeded: admin@example.com / adminpass123"
     except sqlite3.IntegrityError:
@@ -601,7 +734,10 @@ def _seed_teacher():
     db = get_db()
     try:
         pw = generate_password_hash("teacherpass123")
-        db.execute("INSERT INTO teachers (name, email, password_hash) VALUES (?, ?, ?)", ("Demo Teacher", "teacher@example.com", pw))
+        db.execute(
+            "INSERT INTO teachers (name, email, password_hash) VALUES (?, ?, ?)",
+            ("Demo Teacher", "teacher@example.com", pw)
+        )
         db.commit()
         msg = "Teacher seeded: teacher@example.com / teacherpass123"
     except sqlite3.IntegrityError:
@@ -614,8 +750,10 @@ def _seed_student():
     db = get_db()
     try:
         pw = generate_password_hash("studentpass123")
-        db.execute("INSERT INTO students (name, roll_no, email, password_hash) VALUES (?, ?, ?, ?)",
-                   ("Demo Student", "ROLL000", "student@example.com", pw))
+        db.execute(
+            "INSERT INTO students (name, roll_no, email, password_hash) VALUES (?, ?, ?, ?)",
+            ("Demo Student", "ROLL000", "student@example.com", pw)
+        )
         db.commit()
         msg = "Student seeded: student@example.com / studentpass123"
     except sqlite3.IntegrityError:

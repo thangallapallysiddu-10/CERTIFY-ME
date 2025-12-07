@@ -1,205 +1,655 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>CertifyMe</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="utf-8">
+  <title>{% block title %}CertifyMe{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- AOS for scroll animations -->
-  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <!-- Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <!-- Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  {% block head_extra %}{% endblock %}
 
   <style>
     :root {
-      --muted: #111111;
-      --card-radius: 12px;
-      --brand-grad-from: #0ea5e9;
-      --brand-grad-to: #6366f1;
+      --bg: #000000;
+      --surface: rgba(255,255,255,0.04);
+      --surface-soft: rgba(255,255,255,0.03);
+
+      --glow-1: #00eaff;
+      --glow-2: #a855f7;
+
+      --text-main: #ffffff;
+      --text-soft: #b3b3b3;
+
+      --border-soft: rgba(255,255,255,0.08);
+
+      --radius-lg: 24px;
+      --radius-md: 18px;
     }
+
+    * { box-sizing: border-box; }
 
     body {
-      padding-top: 28px;
-      background: #f1f2f2;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      color: #0b1220;
+      min-height: 100vh;
+      margin: 0;
+      font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-main);
+      background:
+        radial-gradient(600px at 10% 0%, rgba(0,234,255,0.16), transparent 60%),
+        radial-gradient(600px at 90% 100%, rgba(168,85,247,0.18), transparent 60%),
+        #000000;
     }
 
-    .container-main {
-      max-width: 1100px;
-      margin: auto;
-      padding: 18px;
+    a { text-decoration: none; }
+
+    /* NAVBAR */
+
+    .app-nav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(22px);
+      background: rgba(0,0,0,0.9);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
-    .card {
-      border-radius: var(--card-radius);
-      box-shadow: 0 6px 18px rgba(18,38,63,0.06);
+    .navbar-brand-mark {
+      padding: 4px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,234,255,0.85);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(0,234,255,0.75), rgba(0,0,0,0.96));
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #f9fafb;
+      box-shadow: 0 0 16px rgba(0,234,255,0.55);
     }
 
-    .brand {
-      font-weight:700;
-      letter-spacing:0.2px;
-      font-size:20px;
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #00ff9d;
+      box-shadow: 0 0 16px rgba(0,255,157,0.9);
     }
 
-    .brand-float { animation: floaty 4s ease-in-out infinite; }
-
-    @keyframes floaty {
-      0%   { transform: translateY(0); }
-      50%  { transform: translateY(-6px); }
-      100% { transform: translateY(0); }
+    .nav-link {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-soft) !important;
     }
 
-    .small-muted { color: var(--muted); font-size:0.92rem; }
+    .nav-link:hover { color: var(--glow-1) !important; }
+    .nav-link.active { color: #ffffff !important; }
 
-    /* Animations + micro interactions */
-    .anim-card {
-      transition: transform .22s cubic-bezier(.2,.9,.3,1), box-shadow .22s ease;
-      will-change: transform;
-    }
-    .anim-card:hover {
-      transform: translateY(-8px) scale(1.01);
-      box-shadow: 0 18px 40px rgba(11,32,70,0.12);
+    .btn-pill {
+      border-radius: 999px;
+      font-size: 0.86rem;
+      font-weight: 500;
+      padding: 0.45rem 1.25rem;
     }
 
-    .anim-btn {
-      transition: transform .14s ease, box-shadow .14s ease;
-      will-change: transform;
-    }
-    .anim-btn:active { transform: scale(.98); }
-    .anim-btn:hover { box-shadow: 0 8px 18px rgba(0,0,0,0.12); }
+    /* BUTTONS (soft glow) */
 
-    /* copy toast */
-    .copy-toast {
-      position:fixed;
-      right:18px;
-      bottom:18px;
-      background:linear-gradient(135deg,var(--brand-grad-from),var(--brand-grad-to));
-      color:white;
-      padding:10px 14px;
-      border-radius:10px;
-      box-shadow:0 12px 28px rgba(14,21,47,0.18);
-      transform: translateY(18px);
-      opacity:0;
-      transition: transform .32s cubic-bezier(.2,.9,.3,1), opacity .32s ease;
-      z-index:99999;
-      font-weight:600;
-      font-size:0.95rem;
-    }
-    .copy-toast.show { transform: translateY(0); opacity:1; }
-
-    /* shimmer skeleton */
-    .skeleton {
-      background: linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 100%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s linear infinite;
-      border-radius:6px;
-      min-height:72px;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+    .btn-primary-pill {
+      background: linear-gradient(135deg,var(--glow-1),var(--glow-2));
+      border: none;
+      box-shadow: 0 0 9px rgba(0,234,255,0.35);
+      color: #000;
+      transition:
+        box-shadow 0.18s ease-out,
+        filter 0.18s ease-out,
+        transform 0.18s ease-out;
     }
 
-    /* canvas fade-in */
-    .canvas-fade { opacity:0; transform: translateY(6px) scale(.998); transition: opacity .38s ease, transform .38s cubic-bezier(.2,.9,.3,1); }
-    .canvas-fade.show { opacity:1; transform: translateY(0) scale(1); }
+    .btn-primary-pill:hover {
+      filter: brightness(1.02);
+      box-shadow: 0 0 14px rgba(0,234,255,0.40);
+      transform: translateY(-1px);
+    }
 
-    footer { margin-top:28px; color:var(--muted); font-size:0.9rem; text-align:center; }
-    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-    .preview-img { max-width:100%; max-height:360px; object-fit:contain; border-radius:8px; border:1px solid #eee; background:white; }
+    .btn-ghost-pill {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: var(--text-main);
+      transition:
+        border-color 0.18s ease-out,
+        background 0.18s ease-out,
+        color 0.18s ease-out,
+        transform 0.18s ease-out;
+    }
 
-    .btn-group .btn { min-width:88px; }
+    .btn-ghost-pill:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.28);
+      transform: translateY(-1px);
+    }
 
-    /* small responsive tweaks */
-    @media (max-width: 768px) {
-      .topbar { flex-direction:column; align-items:flex-start; gap:8px; }
-      .brand { font-size:18px; }
+    /* MAIN LAYOUT */
+
+    .app-main {
+      padding-top: 2rem;
+      padding-bottom: 3rem;
+    }
+
+    .app-card-shell {
+      margin-top: 0.8rem;
+      border-radius: var(--radius-lg);
+      background: var(--surface-soft);
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 22px 50px rgba(0,0,0,0.9);
+      padding: 1.6rem 1.8rem;
+    }
+
+    @media (min-width: 992px) {
+      .app-card-shell {
+        padding: 2rem 2.2rem;
+      }
+    }
+
+    .page-kicker {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--text-soft);
+    }
+
+    .page-title {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+    }
+
+    .page-subtitle {
+      font-size: 0.94rem;
+      color: var(--text-soft);
+      max-width: 540px;
+    }
+
+    .card-soft {
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 1rem 1.1rem;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.85);
+    }
+
+    .card-soft + .card-soft { margin-top: 1rem; }
+
+    .small-muted {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color: var(--text-main);
+    }
+
+    .chip--accent {
+      border-color: rgba(0,234,255,0.7);
+      background: rgba(0,234,255,0.1);
+      color: #e0faff;
+    }
+
+    .chip--danger {
+      border-color: rgba(248,113,113,0.8);
+      background: rgba(248,113,113,0.12);
+      color: #ffe4e6;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+    }
+    .status-dot--ok { background: #00ff9d; }
+    .status-dot--pending { background: #facc15; }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+    }
+    .status-pill--ok {
+      border-color: rgba(34,197,94,0.8);
+      color: #bbf7d0;
+    }
+    .status-pill--pending {
+      border-color: rgba(234,179,8,0.9);
+      color: #facc15;
+    }
+
+    .field-label {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      margin-bottom: 2px;
+    }
+
+    .form-control,
+    .form-select {
+      background: rgba(0,0,0,0.9);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: var(--text-main);
+      font-size: 0.88rem;
+    }
+
+    .form-control::placeholder {
+      color: rgba(255,255,255,0.35);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      background: #000000;
+      border-color: var(--glow-1);
+      box-shadow: 0 0 0 1px rgba(0,234,255,0.8);
+      color: var(--text-main);
+    }
+
+    .table-modern {
+      font-size: 0.82rem;
+      margin-bottom: 0;
+      color: var(--text-main);
+    }
+
+    .table-modern thead {
+      font-size: 0.72rem;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    .table-modern tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .table-modern tbody tr:hover {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .pill-tab-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-bottom: 1rem;
+    }
+
+    .pill-tab {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.05);
+      color: var(--text-soft);
+    }
+
+    .pill-tab.active {
+      background: linear-gradient(135deg, rgba(0,234,255,0.3), rgba(168,85,247,0.3));
+      border-color: rgba(0,234,255,0.9);
+      color: var(--text-main);
+      box-shadow: 0 0 18px rgba(0,234,255,0.5);
+    }
+
+    .tab-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.7);
+    }
+
+    .pill-tab.active .tab-dot { background: #00ff9d; }
+
+    .hero {
+      padding: 4rem 0 3rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 3.2rem;
+      align-items: center;
+    }
+
+    @media (max-width: 991.98px) {
+      .hero-grid { grid-template-columns: 1fr; }
+    }
+
+    .hero-title {
+      font-size: clamp(2.4rem, 3.3vw + 1.4rem, 3.6rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-title .accent {
+      background: linear-gradient(135deg,var(--glow-1),var(--glow-2));
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+      color: var(--text-soft);
+      max-width: 520px;
+    }
+
+    .hero-actions {
+      margin-top: 1.2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .hero-micro {
+      margin-top: 0.7rem;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .hero-role-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      max-width: 960px;
+    }
+
+    .hero-role-card {
+      flex: 1;
+      min-width: 230px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-role-card .role-actions { margin-top: auto; }
+
+    .hero-panel {
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at 0% 0%, rgba(0,234,255,0.16), transparent 60%),
+                  radial-gradient(circle at 100% 100%, rgba(168,85,247,0.18), transparent 60%),
+                  rgba(0,0,0,0.9);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 1.2rem 1.4rem;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.9);
+    }
+
+    .hero-panel-title {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .hero-panel-sub {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .console-box {
+      margin-top: 0.8rem;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.95);
+      border: 1px solid rgba(0,234,255,0.4);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.8rem;
+      padding: 0.9rem 1rem;
+      color: #c6f6ff;
+      text-shadow: 0 0 6px rgba(0,234,255,0.85);
+    }
+
+    .features { padding: 1.5rem 0 0.5rem; }
+
+    .features-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .features-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .features-sub {
+      font-size: 0.88rem;
+      color: var(--text-soft);
+      max-width: 420px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 991.98px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+
+    .feature-card {
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 1.1rem 1.2rem;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.85);
+    }
+
+    .feature-label {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      margin-bottom: 0.35rem;
+    }
+
+    .feature-title {
+      font-size: 0.98rem;
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+    }
+
+    /* Password Visibility Toggle */
+    .password-toggle-group {
+      position: relative;
+    }
+
+    .password-toggle-input {
+      padding-right: 2.4rem;
+    }
+
+    .password-toggle-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      color: rgba(255,255,255,0.7);
+      transition: color 0.2s ease;
+    }
+
+    .password-toggle-btn:hover {
+      color: var(--glow-1);
+    }
+
+    /* Themed alerts + fade-out */
+
+    .alert-soft {
+      border-radius: 999px;
+      border-width: 1px;
+      font-size: 0.82rem;
+      padding: 0.55rem 1rem;
+      background: rgba(248,113,113,0.08);
+      border-color: rgba(248,113,113,0.7);
+      color: #fecaca;
+      box-shadow: 0 0 18px rgba(248,113,113,0.25);
+    }
+
+    .alert-soft.alert-success {
+      background: rgba(34,197,94,0.10);
+      border-color: rgba(34,197,94,0.8);
+      color: #bbf7d0;
+      box-shadow: 0 0 18px rgba(34,197,94,0.25);
+    }
+
+    .alert-soft.alert-info {
+      background: rgba(59,130,246,0.10);
+      border-color: rgba(59,130,246,0.8);
+      color: #bfdbfe;
+      box-shadow: 0 0 18px rgba(59,130,246,0.25);
+    }
+
+    .alert-soft.fade-out {
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
     }
   </style>
 </head>
 <body>
-  <div class="container container-main">
-    <div class="card p-3 mb-3">
-      <div class="topbar mb-2">
-        <div>
-          <a href="{{ url_for('index') }}" class="brand text-decoration-none text-dark brand-float" data-aos="fade-down">CertifyMe</a>
-          <div class="small-muted">Certificate issuance • tamper detection</div>
-        </div>
 
-        <div class="d-flex gap-2 align-items-center">
-          {% if session.admin_name %}
-            <small class="text-muted me-2">Admin: {{ session.admin_name }}</small>
-            <a class="btn btn-outline-dark btn-sm anim-btn" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
-            <a class="btn btn-outline-secondary btn-sm anim-btn" href="{{ url_for('admin_logout') }}">Logout</a>
-          {% elif session.teacher_name %}
-            <small class="text-muted me-2">Teacher: {{ session.teacher_name }}</small>
-            <a class="btn btn-outline-secondary btn-sm anim-btn" href="{{ url_for('logout') }}">Logout</a>
-          {% elif session.student_name %}
-            <small class="text-muted me-2">Student: {{ session.student_name }}</small>
-            <a class="btn btn-outline-secondary btn-sm anim-btn" href="{{ url_for('student_logout') }}">Logout</a>
-          {% else %}
-            <div class="btn-group" role="group" aria-label="role-links">
-              <a class="btn btn-outline-primary btn-sm anim-btn" href="{{ url_for('login') }}">Teacher</a>
-              <a class="btn btn-outline-primary btn-sm anim-btn" href="{{ url_for('student_login') }}">Student</a>
-              <a class="btn btn-dark btn-sm anim-btn" href="{{ url_for('admin_login') }}">Admin</a>
+{# NAVBAR IS OPTIONAL NOW #}
+{% if not hide_nav %}
+<nav class="navbar navbar-expand-lg app-nav">
+  <div class="container-xl py-2">
+    <a class="navbar-brand" href="{{ url_for('index') }}">
+      <span class="navbar-brand-mark">
+        <span class="brand-dot"></span>
+        CERTIFYME
+      </span>
+    </a>
+
+    <button class="navbar-toggler text-light" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMain">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('index') }}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'verify' %}active{% endif %}" href="{{ url_for('verify_certificate') }}">Verify</a>
+        </li>
+
+        {% if session.get('role') == 'admin' %}
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'admin' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Admin</a>
+          </li>
+        {% elif session.get('role') == 'teacher' %}
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'teacher' %}active{% endif %}" href="{{ url_for('teacher_dashboard') }}">Teacher</a>
+          </li>
+        {% elif session.get('role') == 'student' %}
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'student' %}active{% endif %}" href="{{ url_for('student_dashboard') }}">Student</a>
+          </li>
+        {% endif %}
+
+        {% if session.get('user_id') %}
+          <li class="nav-item ms-lg-3">
+            <a class="btn btn-ghost-pill btn-sm" href="{{ url_for('logout') }}">Logout</a>
+          </li>
+        {% else %}
+          <li class="nav-item ms-lg-3 d-flex gap-2 mt-2 mt-lg-0">
+            <a class="btn btn-ghost-pill btn-sm" href="{{ url_for('login') }}">Login</a>
+            <a class="btn btn-primary-pill btn-sm" href="{{ url_for('register') }}">Sign up</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+<main class="app-main">
+  {% block main %}
+    <div class="container-xl">
+      <div class="app-card-shell">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="mb-3">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-soft alert-auto-dismiss mb-2" role="alert">
+                  {{ message }}
+                </div>
+              {% endfor %}
             </div>
           {% endif %}
-        </div>
+        {% endwith %}
+
+        {% block content %}{% endblock %}
       </div>
-
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for category, msg in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-              {{ msg }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-
-      {% block content %}{% endblock %}
     </div>
+  {% endblock %}
+</main>
 
-    <div class="text-center small-muted mb-4">
-      <div class="mt-2">Designed by Team HACKVOK</div>
-    </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <footer>
-      <div>© 2025 CertifyMe — SHA-256 + HMAC tamper detection.</div>
-    </footer>
-  </div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Password visibility toggles
+    document.querySelectorAll('.password-toggle-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const group = btn.closest('.password-toggle-group');
+        if (!group) return;
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        const input = group.querySelector('.password-toggle-input');
+        if (!input) return;
 
-  <!-- AOS -->
-  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      if (window.AOS) {
-        AOS.init({
-          duration: 600,
-          easing: 'ease-out-cubic',
-          once: true,
-          mirror: false
-        });
-      }
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+      });
     });
 
-    // helper: show temporary copy toast (used by copyShare)
-    function showCopyToast(msg) {
-      var t = document.createElement('div');
-      t.className = 'copy-toast';
-      t.innerText = msg || 'Copied to clipboard';
-      document.body.appendChild(t);
-      requestAnimationFrame(function(){ t.classList.add('show'); });
-      setTimeout(function(){
-        t.classList.remove('show');
-        setTimeout(function(){ t.remove(); }, 420);
-      }, 1500);
-    }
-  </script>
+    // Auto-dismiss alerts after 3 seconds
+    document.querySelectorAll('.alert-auto-dismiss').forEach((alertEl) => {
+      setTimeout(() => {
+        alertEl.classList.add('fade-out');
+        setTimeout(() => {
+          if (alertEl && alertEl.parentNode) {
+            alertEl.parentNode.removeChild(alertEl);
+          }
+        }, 400); // wait for CSS transition
+      }, 3000); // visible for 3s
+    });
+  });
+</script>
 
-  {% block scripts %}{% endblock %}
+{% block scripts %}{% endblock %}
 </body>
 </html>

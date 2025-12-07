@@ -1,9 +1,61 @@
 {% extends "base.html" %}
-{% block content %}
-<h4>Admin Login</h4>
-<form method="post">
-  <div class="mb-3"><input class="form-control" name="email" type="email" required placeholder="Email"></div>
-  <div class="mb-3"><input class="form-control" name="password" type="password" required placeholder="Password"></div>
-  <button class="btn btn-dark">Login</button>
-</form>
+{% set active_page = 'admin' %}
+{% block title %}Admin Login – CertifyMe{% endblock %}
+
+{% block main %}
+<div class="container-xl d-flex justify-content-center" style="min-height:70vh;">
+  <div class="align-self-center w-100" style="max-width: 420px;">
+
+    <div class="text-center mb-3">
+      <div class="page-kicker mb-1">Admin console</div>
+      <h1 class="page-title mb-1">Admin login</h1>
+      <p class="page-subtitle mx-auto mb-0">
+        Access platform-wide usage, audit logs and issuer management.
+      </p>
+    </div>
+
+    <div class="card-soft">
+      <form method="post" action="{{ url_for('admin_login') }}">
+        <div class="mb-2">
+          <label class="field-label">Admin email</label>
+          <input
+            type="email"
+            name="email"
+            class="form-control"
+            placeholder="admin@example.com"
+            required
+          >
+        </div>
+
+        <div class="mb-2">
+          <label class="field-label">Password</label>
+          <div class="password-toggle-group">
+            <input
+              type="password"
+              name="password"
+              class="form-control password-toggle-input"
+              placeholder="••••••••"
+              required
+            >
+            <button
+              type="button"
+              class="password-toggle-btn"
+              aria-label="Toggle password visibility"
+              aria-pressed="false"
+            >👁</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary-pill w-100 mt-3" type="submit">
+          Log in as admin
+        </button>
+      </form>
+
+      <p class="small-muted text-center mt-3 mb-0">
+        This area is restricted to platform administrators.
+      </p>
+    </div>
+
+  </div>
+</div>
 {% endblock %}

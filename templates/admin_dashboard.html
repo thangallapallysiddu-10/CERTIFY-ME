@@ -1,49 +1,277 @@
 {% extends "base.html" %}
 {% block content %}
-<h3>Admin Dashboard</h3>
-<p class="small text-muted">Overview of recent actions.</p>
 
-<hr>
-<h5>Recent audit logs</h5>
-<table class="table table-sm">
-  <thead><tr><th>Time</th><th>Action</th><th>Actor</th><th>Cert ID</th><th>IP</th></tr></thead>
-  <tbody>
-    {% for a in audits %}
-      <tr>
-        <td>{{ a['created_at'] }}</td>
-        <td>{{ a['action'] }}</td>
-        <td>{{ a['actor'] }}</td>
-        <td>{{ a['certificate_id'] or '-' }}</td>
-        <td>{{ a['ip'] }}</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<style>
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+  }
 
-<hr>
-<div class="row">
-  <div class="col-md-6">
-    <h6>Recent uploads</h6>
-    <ul class="list-group">
-      {% for u in uploads %}
-        <li class="list-group-item small">{{ u['uploaded_at'] }} — {{ u['student_name'] }} by {{ u['uploaded_by'] }} (code: {{ u['verification_code'] }})</li>
-      {% endfor %}
-    </ul>
+  .admin-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+
+  .admin-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    background: linear-gradient(to right, rgba(56,189,248,0.2), rgba(129,140,248,0.25));
+    border: 1px solid rgba(129,140,248,0.6);
+  }
+
+  .admin-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.9rem;
+    margin-top: 1.2rem;
+  }
+
+  .admin-stat-card {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: radial-gradient(circle at top left, rgba(59,130,246,0.18), rgba(15,23,42,0.95));
+    border: 1px solid rgba(148,163,184,0.5);
+    box-shadow: 0 18px 40px rgba(15,23,42,0.9);
+  }
+
+  .admin-stat-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #9ca3af;
+  }
+
+  .admin-stat-value {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .section-shell {
+    margin-top: 1.6rem;
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: .5rem;
+  }
+
+  .section-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .section-tag {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(148,163,184,0.5);
+    color: #9ca3af;
+  }
+
+  .panel {
+    border-radius: 18px;
+    border: 1px solid rgba(148,163,184,0.45);
+    background: rgba(15,23,42,0.96);
+    padding: 14px 16px;
+    box-shadow: 0 24px 60px rgba(15,23,42,0.95);
+  }
+
+  .logs-table {
+    font-size: 0.82rem;
+  }
+
+  .logs-table thead {
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.7rem;
+  }
+
+  .logs-table tbody tr {
+    border-bottom: 1px solid rgba(31,41,55,0.9);
+  }
+
+  .logs-table tbody tr:hover {
+    background: rgba(15,23,42,0.9);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    border: 1px solid rgba(55,65,81,0.9);
+    color: #e5e7eb;
+    background: rgba(15,23,42,0.9);
+  }
+
+  .chip--ip {
+    border-color: rgba(56,189,248,0.5);
+    color: #7dd3fc;
+  }
+
+  .list-minimal {
+    max-height: 260px;
+    overflow: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .list-minimal li {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(31,41,55,0.9);
+    font-size: 0.8rem;
+  }
+
+  .list-minimal li:last-child {
+    border-bottom: none;
+  }
+
+  .item-label {
+    color: #9ca3af;
+    font-size: 0.7rem;
+  }
+</style>
+
+<div data-aos="fade-up" data-aos-delay="40">
+
+  <div class="admin-header">
+    <div>
+      <div class="admin-pill">
+        <span>Admin control</span>
+        <span style="width:6px; height:6px; border-radius:999px; background:#22c55e;"></span>
+      </div>
+      <div class="admin-title mt-2">Admin Dashboard</div>
+      <p class="small-muted mb-0">
+        High-level view of certificates, teachers, students & recent activity.
+      </p>
+    </div>
+
+    <div class="text-end small-muted">
+      <div>Logged in as <span class="text-light fw-semibold">{{ session.admin_name or 'Admin' }}</span></div>
+      <div class="opacity-75">Last refresh: {{ now or "just now" }}</div>
+    </div>
   </div>
-  <div class="col-md-6">
-    <h6>Teachers</h6>
-    <ul class="list-group">
-      {% for t in teachers %}
-        <li class="list-group-item small">{{ t['created_at'] }} — {{ t['name'] }} ({{ t['email'] }})</li>
-      {% endfor %}
-    </ul>
 
-    <h6 class="mt-3">Students</h6>
-    <ul class="list-group">
-      {% for s in students %}
-        <li class="list-group-item small">{{ s['created_at'] }} — {{ s['name'] }} ({{ s['email'] }})</li>
-      {% endfor %}
-    </ul>
+  <!-- Tiny stats -->
+  <div class="admin-stat-grid">
+    <div class="admin-stat-card">
+      <div class="admin-stat-label">Total certificates</div>
+      <div class="admin-stat-value">{{ stats.total_certs if stats else '-' }}</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-label">Registered teachers</div>
+      <div class="admin-stat-value">{{ stats.total_teachers if stats else '-' }}</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-label">Registered students</div>
+      <div class="admin-stat-value">{{ stats.total_students if stats else '-' }}</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-label">Last 24h actions</div>
+      <div class="admin-stat-value">{{ stats.last_24h_actions if stats else '-' }}</div>
+    </div>
   </div>
+
+  <div class="row section-shell g-3">
+    <div class="col-lg-8">
+      <div class="panel" data-aos="fade-up" data-aos-delay="70">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Recent audit logs</div>
+            <div class="small-muted">Every change to certificates is tracked and signed.</div>
+          </div>
+          <span class="section-tag">Live feed</span>
+        </div>
+
+        <div class="table-responsive logs-table mt-2">
+          <table class="table table-borderless align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Action</th>
+                <th>Actor</th>
+                <th>Cert ID</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in audits %}
+                <tr>
+                  <td class="small">{{ a['created_at'] }}</td>
+                  <td>
+                    <span class="chip">
+                      {{ a['action'] }}
+                    </span>
+                  </td>
+                  <td class="small">{{ a['actor'] }}</td>
+                  <td class="small">{{ a['certificate_id'] or '-' }}</td>
+                  <td>
+                    <span class="chip chip--ip">{{ a['ip_address'] or '-' }}</span>
+                  </td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="5" class="small-muted text-center py-3">
+                    No audit entries yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="panel" data-aos="fade-up" data-aos-delay="90">
+        <div class="section-head">
+          <div class="section-title">Users</div>
+          <span class="section-tag">Teachers & Students</span>
+        </div>
+
+        <div class="mt-2">
+          <div class="item-label mb-1">Teachers</div>
+          <ul class="list-minimal">
+            {% for t in teachers %}
+              <li>
+                <div>{{ t['name'] }} <span class="small-muted">({{ t['email'] }})</span></div>
+                <div class="item-label">{{ t['created_at'] }}</div>
+              </li>
+            {% else %}
+              <li class="small-muted">No teachers yet.</li>
+            {% endfor %}
+          </ul>
+
+          <div class="item-label mt-3 mb-1">Students</div>
+          <ul class="list-minimal">
+            {% for s in students %}
+              <li>
+                <div>{{ s['name'] }} <span class="small-muted">({{ s['email'] }})</span></div>
+                <div class="item-label">{{ s['created_at'] }}</div>
+              </li>
+            {% else %}
+              <li class="small-muted">No students yet.</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

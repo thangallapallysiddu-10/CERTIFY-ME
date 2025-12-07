@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .page-shell {
+    margin-top: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .howit-container {
+    border-radius: 24px;
+    padding: 2rem 2.4rem;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(0,234,255,0.12), transparent 60%),
+      radial-gradient(circle at 100% 100%, rgba(168,85,247,0.16), transparent 55%),
+      rgba(0,0,0,0.92);
+    border: 1px solid rgba(148,163,184,0.35);
+    box-shadow:
+      0 24px 60px rgba(0,0,0,0.95),
+      0 0 60px rgba(0,234,255,0.05);
+  }
+
+  .section-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #9ca3af;
+  }
+
+  .section-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    letter-spacing: -0.02em;
+  }
+
+  .info-text {
+    font-size: 0.86rem;
+    color: #cbd5f5;
+  }
+
+  .anim-btn {
+    border-radius: 999px;
+    font-size: 0.84rem;
+    padding: 0.45rem 1.25rem;
+    border: 1px solid rgba(148,163,184,0.7);
+    color: #e5e7eb;
+    background: radial-gradient(circle at 0% 50%, rgba(0,234,255,0.26), transparent 70%);
+    transition:
+      transform 0.18s ease-out,
+      box-shadow 0.18s ease-out,
+      border-color 0.18s ease-out,
+      background 0.18s ease-out,
+      color 0.18s ease-out;
+  }
+
+  .anim-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(0,234,255,0.9);
+    box-shadow: 0 0 18px rgba(0,234,255,0.45);
+    color: #ffffff;
+    background:
+      linear-gradient(135deg, rgba(0,234,255,0.5), rgba(168,85,247,0.6));
+  }
+
+  @keyframes floatIn {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .feature-card,
+  .step-card {
+    animation: floatIn 0.55s ease-out both;
+  }
+
+  .feature-row .col-md-4:nth-child(1) .feature-card { animation-delay: 0.05s; }
+  .feature-row .col-md-4:nth-child(2) .feature-card { animation-delay: 0.13s; }
+  .feature-row .col-md-4:nth-child(3) .feature-card { animation-delay: 0.21s; }
+
+  .step-row .col-md-4:nth-child(1) .step-card { animation-delay: 0.10s; }
+  .step-row .col-md-4:nth-child(2) .step-card { animation-delay: 0.18s; }
+  .step-row .col-md-4:nth-child(3) .step-card { animation-delay: 0.26s; }
+
+  .feature-card {
+    position: relative;
+    border-radius: 18px;
+    padding: 18px 16px 16px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    background:
+      radial-gradient(circle at top left, rgba(55, 65, 81, 0.95), rgba(15, 23, 42, 0.98));
+    overflow: hidden;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.9);
+    transition:
+      transform 0.2s ease-out,
+      box-shadow 0.2s ease-out,
+      border-color 0.2s ease-out,
+      background 0.2s ease-out;
+  }
+
+  .feature-card::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(0,234,255,0.2), transparent 55%),
+      radial-gradient(circle at 100% 100%, rgba(168,85,247,0.16), transparent 60%);
+    opacity: 0;
+    transform: translate3d(-10%, -10%, 0);
+    transition:
+      opacity 0.35s ease-out,
+      transform 0.45s ease-out;
+    pointer-events: none;
+  }
+
+  .feature-card:hover::before {
+    opacity: 1;
+    transform: translate3d(6%, 6%, 0);
+  }
+
+  .feature-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0,234,255,0.7);
+    box-shadow:
+      0 22px 55px rgba(0,0,0,0.95),
+      0 0 28px rgba(0,234,255,0.45);
+    background:
+      radial-gradient(circle at top left, rgba(30, 64, 175, 0.9), rgba(15, 23, 42, 0.98));
+  }
+
+  .feature-inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .feature-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #f9fafb;
+    margin-bottom: 8px;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 1);
+  }
+
+  .feature-icon.hash {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+  }
+
+  .feature-icon.qr {
+    background: linear-gradient(135deg, #0ea5e9, #22d3ee);
+  }
+
+  .feature-icon.audit {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+  }
+
+  .feature-title {
+    font-size: 0.98rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #f9fafb;
+  }
+
+  .feature-text {
+    font-size: 0.82rem;
+    color: #cbd5f5;
+  }
+
+  /* steps */
+  .step-card {
+    position: relative;
+    border-radius: 18px;
+    padding: 16px 16px 14px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: rgba(15, 23, 42, 0.97);
+    text-align: left;
+    height: 100%;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.9);
+    transition:
+      transform 0.2s ease-out,
+      border-color 0.2s ease-out,
+      box-shadow 0.2s ease-out,
+      background 0.2s ease-out;
+  }
+
+  .step-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0,234,255,0.7);
+    box-shadow:
+      0 22px 55px rgba(0,0,0,0.95),
+      0 0 24px rgba(0,234,255,0.35);
+    background: radial-gradient(circle at top left, rgba(30,64,175,0.7), rgba(15,23,42,0.98));
+  }
+
+  .step-number {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #f9fafb;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    margin-bottom: 6px;
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.8);
+  }
+
+  .step-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: #e5e7eb;
+  }
+
+  .step-text {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin-bottom: 0;
+  }
+</style>
+
+<div class="container page-shell">
+  <div class="howit-container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+      <div>
+        <div class="section-label mb-1">How it works</div>
+        <div class="section-title">Inside CertifyMe’s security model</div>
+        <p class="info-text mb-0">
+          This page explains how certificates are protected, stored, and verified inside the platform.
+        </p>
+      </div>
+      <div>
+        <a href="{{ url_for('index') }}" class="anim-btn">
+          Start Using CertifyMe →
+        </a>
+      </div>
+    </div>
+
+    <div class="mt-2">
+      <div class="mb-3">
+        <div class="section-label">Trust architecture</div>
+        <div class="section-title">How CertifyMe keeps certificates safe</div>
+      </div>
+
+      <div class="row g-3 feature-row">
+        <div class="col-md-4">
+          <div class="feature-card h-100">
+            <div class="feature-inner">
+              <div class="feature-icon hash">H</div>
+              <div class="feature-title">SHA-256 hashing</div>
+              <p class="feature-text mb-0">
+                When a certificate is uploaded, a SHA-256 hash is generated from its content so
+                even a tiny modification produces a completely different hash value.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="feature-card h-100">
+            <div class="feature-inner">
+              <div class="feature-icon audit">✓</div>
+              <div class="feature-title">Tamper detection</div>
+              <p class="feature-text mb-0">
+                On verification, the system recomputes the hash and compares with the original.
+                Any mismatch means tampering.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5">
+      <div class="mb-3">
+        <div class="section-label">Flow</div>
+        <div class="section-title">Simple three-step process</div>
+      </div>
+
+      <div class="row g-3 step-row">
+        <div class="col-md-4">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-title">Teacher uploads</div>
+            <p class="step-text">
+              Teacher uploads a PDF and fills student details. Metadata and a secure hash are stored.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-title">Hash & HMAC</div>
+            <p class="step-text">
+              The hash is combined with a secret HMAC key only the platform knows.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-title">Verify anytime</div>
+            <p class="step-text">
+              Anyone can verify instantly. If changed, it is flagged as invalid.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

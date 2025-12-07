@@ -1,36 +1,101 @@
 {% extends "base.html" %}
-{% block content %}
-<div class="mx-auto" style="max-width:1000px;">
-  <h3 class="mb-2">Certificate Verification</h3>
+{% set hide_nav = true %}
+{% block title %}Public Certificate View – CertifyMe{% endblock %}
 
-  <div class="card p-3 mb-3">
-    <div><strong>Student:</strong> {{ cert.student_name }}<br>
-      <strong>Verification code:</strong> {{ cert.verification_code }}</div>
+{% block main %}
+<div class="container-xl" style="max-width: 1100px;">
+  <div class="app-card-shell" style="margin-top: 2.5rem;">
 
-    <div class="mt-3 text-center">
-      {% if cert.thumbnail %}
-        <img src="{{ url_for('serve_thumb', filename=cert.thumbnail) }}?v={{ cert.id }}" style="max-width:100%; border-radius:8px;">
-      {% elif cert.filename and cert.filename.lower().endswith('.pdf') %}
-        <div style="height:80vh;">
-          <iframe src="{{ url_for('uploaded_file', filename=cert.filename) }}" style="width:100%;height:100%;border:0;"></iframe>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <div class="page-kicker mb-1">Public verification</div>
+        <h1 class="page-title mb-1">Certificate Verification</h1>
+        <p class="page-subtitle mb-0">
+          This page shows a read-only view of the certificate and its integrity status.
+        </p>
+      </div>
+
+      <div class="text-end">
+        <div class="small-muted mb-1">Powered by</div>
+        <span class="navbar-brand-mark">
+          <span class="brand-dot"></span>
+          CERTIFYME
+        </span>
+      </div>
+    </div>
+
+    <!-- Meta info + status -->
+    <div class="card-soft mb-3">
+      <div class="d-flex flex-wrap justify-content-between gap-3">
+        <div>
+          <div class="small-muted text-uppercase mb-1" style="letter-spacing:0.16em;">Student</div>
+          <div class="fw-semibold">{{ cert.student_name }}</div>
+
+          <div class="small-muted mt-3 text-uppercase mb-1" style="letter-spacing:0.16em;">Verification code</div>
+          <span class="chip chip--accent">{{ cert.verification_code }}</span>
         </div>
-      {% else %}
-        <div class="small-muted">No preview available.</div>
-      {% endif %}
+
+        <div class="text-end">
+          <div class="small-muted text-uppercase mb-1" style="letter-spacing:0.16em;">Status</div>
+
+          {% if not tampered and hash_ok and sig_ok %}
+            <div class="status-pill status-pill--ok">
+              <span class="status-dot status-dot--ok"></span>
+              Genuine – hash & signature valid
+            </div>
+          {% else %}
+            <div class="status-pill status-pill--pending">
+              <span class="status-dot status-dot--pending"></span>
+              Tampered / Invalid
+            </div>
+          {% endif %}
+
+          <div class="small-muted mt-2">
+            Checked on server at {{ cert.uploaded_at }}
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="mt-3">
-      {% if not tampered and hash_ok and sig_ok %}
-        <div class="alert alert-success">This certificate appears <strong>Genuine</strong>.</div>
-      {% else %}
-        <div class="alert alert-danger">This certificate appears <strong>Tampered / Invalid</strong>.</div>
-      {% endif %}
-      <div class="small text-muted">Verification checked on server.</div>
-    </div>
-  </div>
+    <!-- Certificate preview -->
+    <div class="card-soft mb-3">
+      <div class="small-muted mb-2">Certificate preview</div>
 
-  <div class="text-muted small">
-    This public page shows verification status only. Downloads are not provided here.
+      <div class="text-center">
+        {% if cert.thumbnail %}
+          <img
+            src="{{ url_for('serve_thumb', filename=cert.thumbnail) }}?v={{ cert.id }}"
+            alt="Certificate preview"
+            style="max-width:100%; border-radius:12px; box-shadow:0 22px 45px rgba(0,0,0,0.9);"
+          >
+        {% elif cert.filename and cert.filename.lower().endswith('.pdf') %}
+          <div style="height:80vh; border-radius:16px; overflow:hidden; box-shadow:0 22px 45px rgba(0,0,0,0.9);">
+            <iframe
+              src="{{ url_for('uploaded_file', filename=cert.filename) }}"
+              style="width:100%; height:100%; border:0; background:#000;"
+            ></iframe>
+          </div>
+        {% else %}
+          <div class="small-muted">No preview available for this file type.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Footer actions -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div class="small-muted">
+        This public link only shows verification status and a view-only preview.
+        Downloads are not provided here.
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('index') }}" class="btn btn-ghost-pill btn-sm">
+          Go to CertifyMe home
+        </a>
+      </div>
+    </div>
+
   </div>
 </div>
 {% endblock %}

@@ -1,12 +1,101 @@
 {% extends "base.html" %}
-{% block content %}
-<div class="mx-auto" style="max-width:520px">
-  <h4 class="mb-3">Teacher Login</h4>
-  <form method="post">
-    <div class="mb-3"><input class="form-control" name="email" type="email" required placeholder="Email"></div>
-    <div class="mb-3"><input class="form-control" name="password" type="password" required placeholder="Password"></div>
-    <button class="btn btn-primary">Login</button>
-  </form>
-  <div class="mt-3 small-muted">New? <a href="{{ url_for('register') }}">Register here</a></div>
+{% set active_page = 'teacher' %}
+{% block title %}Teacher Login – CertifyMe{% endblock %}
+
+{% block main %}
+
+<!-- Flash Message (Auto hide 3s) -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-box"
+         class="alert alert-danger text-center border-0"
+         style="background:rgba(255,0,80,0.15);color:#ffb4c6;font-weight:500;
+                border-radius:14px;box-shadow:0 0 18px rgba(255,0,120,0.25);">
+      {{ messages[0][1] }}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="container-xl d-flex justify-content-center" style="min-height:70vh;">
+  <div class="align-self-center w-100" style="max-width: 420px;">
+
+    <div class="text-center mb-3">
+      <div class="page-kicker mb-1">Teacher portal</div>
+      <h1 class="page-title mb-1">Welcome back</h1>
+      <p class="page-subtitle mx-auto mb-0">
+        Log in to issue certificates, manage batches and track verification activity.
+      </p>
+    </div>
+
+    <div class="card-soft">
+      <form method="post" action="{{ url_for('login') }}">
+        
+        <!-- Email -->
+        <div class="mb-2">
+          <label class="field-label">Email</label>
+          <input
+            type="email"
+            name="email"
+            class="form-control"
+            placeholder="teacher@email.com"
+            required>
+        </div>
+
+        <!-- Password with toggle -->
+        <div class="mb-2">
+          <label class="field-label">Password</label>
+          <div class="position-relative">
+            <input
+              id="password-field"
+              type="password"
+              name="password"
+              class="form-control pe-5"
+              placeholder="••••••••"
+              required>
+
+            <button
+              type="button"
+              id="toggle-password"
+              class="position-absolute"
+              style="right:12px;top:50%;transform:translateY(-50%);
+                     background:none;border:none;color:#9aa0a6;"
+              aria-label="Toggle password visibility">
+              👁
+            </button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary-pill w-100 mt-3" type="submit">
+          Log in as teacher
+        </button>
+      </form>
+
+      <p class="small-muted text-center mt-3 mb-0">
+        New here?
+        <a href="{{ url_for('register') }}">Create a teacher account</a>
+      </p>
+    </div>
+
+  </div>
 </div>
+
+<!-- Password Toggle Script -->
+<script>
+  const pwd = document.getElementById("password-field");
+  const btn = document.getElementById("toggle-password");
+
+  btn.addEventListener("click", () => {
+    pwd.type = pwd.type === "password" ? "text" : "password";
+  });
+
+  // Flash message auto-hide after 3 seconds
+  setTimeout(() => {
+    const box = document.getElementById("flash-box");
+    if (box) {
+      box.style.opacity = "0";
+      setTimeout(() => box.remove(), 600);
+    }
+  }, 3000);
+</script>
+
 {% endblock %}
