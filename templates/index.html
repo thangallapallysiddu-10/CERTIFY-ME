@@ -1,138 +1,130 @@
 {% extends "base.html" %}
 {% set active_page = 'home' %}
-{% block title %}CertifyMe – Verifiable Certificates{% endblock %}
+{% block title %}CertifyMe – Secure Student Certificates{% endblock %}
 
-{# Home overrides "main" so it doesn’t use the default app-card-shell wrapper #}
 {% block main %}
 <div class="container-xl">
 
-  <!-- ===== HERO SECTION: ROLE GATEWAY ===== -->
+  <!-- HERO -->
   <section class="hero">
-    <div class="hero-grid" style="grid-template-columns: 1fr;">
+    <div class="hero-grid">
+      <!-- Left: copy -->
       <div>
-        <div class="page-kicker mb-2">Blockchain-backed credentialing</div>
-
+        <div class="page-kicker mb-2">Digital certificates, done right</div>
         <h1 class="hero-title">
-          Make your certificates
-          <span class="accent">impossible to fake.</span>
+          Turn <span class="accent">student achievements</span><br>
+          into tamper-proof credentials.
         </h1>
-
-        <p class="hero-subtitle mb-4">
-          CertifyMe lets institutes, teachers and students issue, store and verify
-          credentials with cryptographic integrity and instant public verification.
+        <p class="hero-subtitle">
+          CertifyMe lets teachers upload certificates, sign them with secure hashes,
+          and give students a single place to view and verify everything.
         </p>
 
-        <!-- Role cards -->
-        <div class="d-flex flex-wrap gap-3 mt-3" style="max-width: 960px;">
+        <div class="hero-actions">
+          <a href="{{ url_for('register') }}" class="btn btn-primary-pill btn-lg">
+            Start issuing certificates
+          </a>
 
-          <!-- Teacher card -->
-          <div class="card-soft" style="flex:1; min-width: 230px;">
-            <div class="feature-label">For teachers</div>
-            <div class="feature-title mb-2">Issue certificates</div>
-            <p class="small-muted mb-3">
-              Generate and manage verifiable certificates for your classes and programs.
-            </p>
-            <div class="d-flex flex-column gap-2">
-              <a href="{{ url_for('login') }}" class="btn btn-ghost-pill w-100">
-                Teacher login
-              </a>
-              <a href="{{ url_for('register') }}" class="btn btn-primary-pill w-100">
-                Create teacher account
-              </a>
-            </div>
-          </div>
+          <a href="{{ url_for('student_login') }}" class="btn btn-primary-pill btn-lg">
+            Student portal
+          </a>
 
-          <!-- Student card -->
-          <div class="card-soft" style="flex:1; min-width: 230px;">
-            <div class="feature-label">For students</div>
-            <div class="feature-title mb-2">Access your credentials</div>
-            <p class="small-muted mb-3">
-              View all certificates issued to you and share secure public links anywhere.
-            </p>
-            <div class="d-flex flex-column gap-2">
-              <a href="{{ url_for('student_login') }}" class="btn btn-ghost-pill w-100">
-                Student login
-              </a>
-              <a href="{{ url_for('student_register') }}" class="btn btn-primary-pill w-100">
-                Create student account
-              </a>
-            </div>
-          </div>
-
-          <!-- Admin card -->
-          <div class="card-soft" style="flex:1; min-width: 230px;">
-            <div class="feature-label">For admins</div>
-            <div class="feature-title mb-2">Manage the platform</div>
-            <p class="small-muted mb-3">
-              Monitor usage, audit logs and issuers from a single admin console.
-            </p>
-            <div class="d-flex flex-column gap-2">
-              <a href="{{ url_for('admin_login') }}" class="btn btn-primary-pill w-100">
-                Admin login
-              </a>
-            </div>
-          </div>
-
+          <a href="{{ url_for('verify_certificate') }}" class="btn btn-ghost-pill btn-lg">
+            Verify a certificate
+          </a>
         </div>
 
-        <p class="hero-micro mb-0 mt-3">
-          No PDFs in email. One link, globally verifiable.
-        </p>
+        <div class="hero-micro">
+         created by team "HACKVOK"
+        </div>
+      </div>
+
+      <!-- Right: live-ish console panel -->
+      <div>
+        <div class="hero-panel">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <div class="hero-panel-title">Live integrity check</div>
+            <span class="chip chip--accent">
+              <span class="status-dot status-dot--ok"></span>
+              Online
+            </span>
+          </div>
+          <div class="hero-panel-sub">
+            Every upload is hashed, signed and tracked. Verifiers get instant “genuine vs tampered” status.
+          </div>
+
+          <div class="console-box mt-3">
+            $ certifyme verify CFM-AB92Q7LX<br>
+            › Hash match: <span style="color:#4ade80;">OK</span><br>
+            › Signature: <span style="color:#4ade80;">VALID</span><br>
+            › Status: <span style="color:#4ade80;">GENUINE</span><br>
+            <br>
+            $ certifyme verify CFM-X1Z9K3TQ<br>
+            › Hash match: <span style="color:#f97373;">FAILED</span><br>
+            › Signature: <span style="color:#f97373;">INVALID</span><br>
+            › Status: <span style="color:#f97373;">TAMPERED</span>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== FEATURES SECTION (OPTIONAL, STILL NICE CONTENT) ===== -->
+  <!-- FEATURES -->
   <section class="features">
     <div class="features-header">
       <div>
-        <div class="page-kicker mb-1">For everyone in the loop</div>
-        <div class="features-title">A single source of truth for certificates.</div>
-        <p class="features-sub mb-0">
-          Admins issue in bulk, teachers manage classes, and students carry verifiable proof
-          of their work anywhere on the internet.
-        </p>
+        <div class="features-title">Built for colleges, bootcamps & schools</div>
+        <div class="features-sub">
+          CertifyMe keeps documents in your own account but protects them
+          with cryptographic hashes and a full audit trail.
+        </div>
       </div>
 
-      <div class="small-muted text-end">
-        <div>{{ stats.total_institutes if stats else 0 }} partner institutes</div>
-        <div>{{ stats.total_teachers if stats else 0 }} verified teachers</div>
-        <div>{{ stats.verifications_today if stats else 0 }} verifications today</div>
-      </div>
+      {% if stats %}
+        <div class="text-end small-muted">
+          <div>Total certificates: <strong>{{ stats.total_certs }}</strong></div>
+          <div>Teachers onboarded: <strong>{{ stats.total_teachers }}</strong></div>
+          <div>Students registered: <strong>{{ stats.total_students }}</strong></div>
+        </div>
+      {% endif %}
     </div>
 
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-label">For admins</div>
-        <div class="feature-title">Issue at scale</div>
-        <p class="small-muted">
-          Import CSVs or connect your LMS. Generate hundreds of tamper-proof certificates
-          in a single batch, each with its own verification link.
-        </p>
-        <span class="chip">Bulk CSV • Role-based access</span>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-label">For teachers & mentors</div>
-        <div class="feature-title">Own your classroom trail</div>
-        <p class="small-muted">
-          Design templates per course, track who received which certificate,
-          and revoke credentials if something shouldn’t stay valid.
-        </p>
-        <span class="chip">Templates • Audit logs</span>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-label">For students & verifiers</div>
-        <div class="feature-title">One link, global trust</div>
-        <p class="small-muted">
-          Students share a single URL; employers and universities can verify authenticity
-          instantly via the public verify page.
+        <div class="feature-label">For teachers</div>
+        <div class="feature-title">Issue in batches or one-by-one</div>
+        <p class="small-muted mb-2">
+          Upload PDFs or images, tag them with student details, and get instant
+          verification codes that you can print or share.
         </p>
         <span class="chip">
-          <a href="{{ url_for('verify_certificate') }}" style="color: inherit;">
-            Open public verify
-          </a>
+          <span class="status-dot status-dot--ok"></span>
+          SHA-256 + HMAC signing
+        </span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-label">For students</div>
+        <div class="feature-title">All certificates in one place</div>
+        <p class="small-muted mb-2">
+          Students log in with their email to see every certificate linked to them,
+          open a safe preview, and share public view links.
+        </p>
+        <span class="chip">
+          View-only previews, no raw downloads
+        </span>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-label">For verifiers</div>
+        <div class="feature-title">Instant trust check</div>
+        <p class="small-muted mb-2">
+          Recruiters or universities just paste a code or use a public link. The
+          system re-computes the hash and flags any tampering.
+        </p>
+        <span class="chip chip--danger">
+          <span class="status-dot status-dot--pending"></span>
+          Tamper detection built-in
         </span>
       </div>
     </div>

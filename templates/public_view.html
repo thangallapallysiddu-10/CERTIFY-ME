@@ -2,100 +2,256 @@
 {% set hide_nav = true %}
 {% block title %}Public Certificate View – CertifyMe{% endblock %}
 
+{% block head_extra %}
+<style>
+  .pv-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  .pv-canvas {
+    width: 100%;
+    max-width: 1100px;
+    border-radius: 28px;
+    padding: 1.8rem 1.9rem;
+    position: relative;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(0,234,255,0.14), transparent 55%),
+      radial-gradient(circle at 100% 100%, rgba(168,85,247,0.16), transparent 55%),
+      rgba(0,0,0,0.92);
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 26px 70px rgba(0,0,0,0.95);
+    overflow: hidden;
+  }
+
+  .pv-canvas::before {
+    /* subtle blurred glow behind content */
+    content: "";
+    position: absolute;
+    inset: -40px;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(0,234,255,0.35), transparent 55%),
+      radial-gradient(circle at 85% 100%, rgba(168,85,247,0.35), transparent 55%);
+    opacity: 0.35;
+    filter: blur(40px);
+    z-index: 0;
+  }
+
+  .pv-inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .pv-meta-row {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .pv-cert-frame {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.16);
+    box-shadow: 0 22px 55px rgba(0,0,0,0.95);
+    background: #020617;
+  }
+
+  .pv-cert-viewport {
+    height: 78vh;
+    max-height: 700px;
+  }
+
+  .pv-cert-viewport iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #000;
+  }
+
+  .pv-cert-viewport img {
+    max-width: 100%;
+    display: block;
+  }
+
+  /* animated watermark over the certificate */
+  .pv-watermark {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.45em;
+    color: rgba(248,250,252,0.13);
+    transform: rotate(-22deg);
+    animation: pvWatermarkPulse 3.2s ease-in-out infinite;
+    mix-blend-mode: screen;
+  }
+
+  @keyframes pvWatermarkPulse {
+    0%   { opacity: 0.10; }
+    50%  { opacity: 0.28; }
+    100% { opacity: 0.10; }
+  }
+
+  .pv-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(15,23,42,0.85);
+  }
+
+  .pv-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+  }
+
+  .pv-status-dot.ok { background: #22c55e; }
+  .pv-status-dot.bad { background: #f97373; }
+
+  .pv-status-chip.ok {
+    border-color: rgba(34,197,94,0.85);
+    color: #bbf7d0;
+  }
+
+  .pv-status-chip.bad {
+    border-color: rgba(248,113,113,0.85);
+    color: #fecaca;
+  }
+
+  .pv-footer-note {
+    font-size: 0.78rem;
+    color: #9ca3af;
+  }
+</style>
+{% endblock %}
+
 {% block main %}
-<div class="container-xl" style="max-width: 1100px;">
-  <div class="app-card-shell" style="margin-top: 2.5rem;">
+<div class="pv-shell">
+  <div class="pv-canvas">
+    <div class="pv-inner">
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-      <div>
-        <div class="page-kicker mb-1">Public verification</div>
-        <h1 class="page-title mb-1">Certificate Verification</h1>
-        <p class="page-subtitle mb-0">
-          This page shows a read-only view of the certificate and its integrity status.
-        </p>
-      </div>
-
-      <div class="text-end">
-        <div class="small-muted mb-1">Powered by</div>
-        <span class="navbar-brand-mark">
-          <span class="brand-dot"></span>
-          CERTIFYME
-        </span>
-      </div>
-    </div>
-
-    <!-- Meta info + status -->
-    <div class="card-soft mb-3">
-      <div class="d-flex flex-wrap justify-content-between gap-3">
+      <!-- Header / meta -->
+      <div class="pv-meta-row mb-3">
         <div>
-          <div class="small-muted text-uppercase mb-1" style="letter-spacing:0.16em;">Student</div>
-          <div class="fw-semibold">{{ cert.student_name }}</div>
-
-          <div class="small-muted mt-3 text-uppercase mb-1" style="letter-spacing:0.16em;">Verification code</div>
-          <span class="chip chip--accent">{{ cert.verification_code }}</span>
+          <div class="page-kicker mb-1">Public verification</div>
+          <h1 class="page-title mb-1">Certificate Verification</h1>
+          <p class="page-subtitle mb-0">
+            View-only copy of the uploaded certificate and its integrity status.
+          </p>
         </div>
-
         <div class="text-end">
-          <div class="small-muted text-uppercase mb-1" style="letter-spacing:0.16em;">Status</div>
+          <div class="small-muted text-uppercase mb-1" style="letter-spacing:0.16em;">Verification code</div>
+          <div class="chip chip--accent mb-2">{{ cert['verification_code'] }}</div>
 
           {% if not tampered and hash_ok and sig_ok %}
-            <div class="status-pill status-pill--ok">
-              <span class="status-dot status-dot--ok"></span>
-              Genuine – hash & signature valid
+            <div class="pv-status-chip ok">
+              <span class="pv-status-dot ok"></span>
+              Genuine — hash & signature valid
             </div>
           {% else %}
-            <div class="status-pill status-pill--pending">
-              <span class="status-dot status-dot--pending"></span>
-              Tampered / Invalid
+            <div class="pv-status-chip bad">
+              <span class="pv-status-dot bad"></span>
+              Tampered / invalid
             </div>
           {% endif %}
+        </div>
+      </div>
 
-          <div class="small-muted mt-2">
-            Checked on server at {{ cert.uploaded_at }}
+      <!-- Basic info -->
+      <div class="card-soft mb-3">
+        <div class="d-flex flex-wrap justify-content-between gap-3">
+          <div>
+            <div class="small-muted text-uppercase mb-1" style="letter-spacing:0.16em;">Student</div>
+            <div class="fw-semibold">{{ cert['student_name'] }}</div>
+
+            {% if cert['description'] %}
+              <div class="small-muted mt-2 text-uppercase mb-1" style="letter-spacing:0.16em;">Description</div>
+              <div>{{ cert['description'] }}</div>
+            {% endif %}
+          </div>
+
+          <div class="text-end">
+            <div class="small-muted text-uppercase mb-1" style="letter-spacing:0.16em;">Issued at</div>
+            <div>{{ cert['uploaded_at'] }}</div>
+
+            {% if cert['uploaded_by_name'] %}
+            <div class="small-muted mt-2 text-uppercase mb-1" style="letter-spacing:0.16em;">Issuer</div>
+            <div>{{ cert['uploaded_by_name'] }}</div>
+            {% endif %}
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Certificate preview -->
-    <div class="card-soft mb-3">
-      <div class="small-muted mb-2">Certificate preview</div>
+      <!-- Certificate frame with watermark overlay -->
+      <div class="card-soft pv-cert-frame mb-3">
+        <div class="small-muted mb-2">View-only certificate preview</div>
 
-      <div class="text-center">
-        {% if cert.thumbnail %}
-          <img
-            src="{{ url_for('serve_thumb', filename=cert.thumbnail) }}?v={{ cert.id }}"
-            alt="Certificate preview"
-            style="max-width:100%; border-radius:12px; box-shadow:0 22px 45px rgba(0,0,0,0.9);"
-          >
-        {% elif cert.filename and cert.filename.lower().endswith('.pdf') %}
-          <div style="height:80vh; border-radius:16px; overflow:hidden; box-shadow:0 22px 45px rgba(0,0,0,0.9);">
-            <iframe
-              src="{{ url_for('uploaded_file', filename=cert.filename) }}"
-              style="width:100%; height:100%; border:0; background:#000;"
-            ></iframe>
-          </div>
-        {% else %}
-          <div class="small-muted">No preview available for this file type.</div>
-        {% endif %}
-      </div>
-    </div>
+        <div class="pv-cert-viewport">
+          {% if cert['thumbnail'] %}
+            <img src="{{ url_for('serve_thumb', filename=cert['thumbnail']) }}?v={{ cert['id'] }}"
+                 alt="Certificate thumbnail">
+          {% elif cert['filename'] and cert['filename'].lower().endswith('.pdf') %}
+            <iframe src="{{ url_for('uploaded_file', filename=cert['filename']) }}"></iframe>
+          {% else %}
+            <div class="d-flex align-items-center justify-content-center h-100 small-muted">
+              No preview available for this file type.
+            </div>
+          {% endif %}
+        </div>
 
-    <!-- Footer actions -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-      <div class="small-muted">
-        This public link only shows verification status and a view-only preview.
-        Downloads are not provided here.
+        <div class="pv-watermark">
+          CERTIFYME • VIEW ONLY
+        </div>
       </div>
 
-      <div class="d-flex flex-wrap gap-2">
-        <a href="{{ url_for('index') }}" class="btn btn-ghost-pill btn-sm">
-          Go to CertifyMe home
-        </a>
+      <!-- Footer text -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="pv-footer-note">
+          This public link is intended for verification only. Screenshots or re-uploads
+          may still be captured by users, but the original file will always be checked
+          against its stored hash.
+        </div>
+        <div class="pv-footer-note text-end">
+          To re-check this certificate, use code
+          <strong>{{ cert['verification_code'] }}</strong> on the
+          <a href="{{ url_for('verify_certificate', code=cert['verification_code']) }}">Verify page</a>.
+        </div>
       </div>
-    </div>
 
+    </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Light "anti-screenshot" measures: disable right-click and basic print/PrtScn shortcuts.
+  // Not bulletproof (nothing on the web is), but enough to discourage casual copying.
+  document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    const key = e.key.toLowerCase();
+    if (key === 'printscreen' || (e.ctrlKey && key === 'p')) {
+      e.preventDefault();
+      alert('This is a view-only verification page. Printing / screenshots are restricted.');
+    }
+  });
+</script>
 {% endblock %}

@@ -3,16 +3,25 @@
 
 {% block main %}
 <div class="container-xl" style="max-width: 1200px;">
-  <div class="app-card-shell">
 
-    <h2 class="mb-3">Welcome, {{ session.get('teacher_name') }}</h2>
+  <!-- TOP CARD: WELCOME + STATS -->
+  <div class="app-card-shell mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="mb-0">Welcome, {{ session.get('teacher_name') }}</h2>
+
+      <a href="{{ url_for('upload') }}" class="btn btn-primary-pill btn-lg">
+        + Issue new certificate
+      </a>
+    </div>
 
     <div class="d-flex flex-wrap gap-3">
+      <!-- TOTAL CERTIFICATES (always show, even if 0) -->
       <div class="card-soft flex-grow-1">
         <div class="small-muted text-uppercase mb-1">Total certificates issued</div>
         <div class="page-title fw-semibold">{{ uploads|length }}</div>
       </div>
 
+      <!-- MOST RECENT UPLOAD (only if exists) -->
       {% if uploads|length > 0 %}
       <div class="card-soft flex-grow-1">
         <div class="small-muted text-uppercase mb-1">Most recent upload</div>
@@ -21,6 +30,7 @@
       </div>
       {% endif %}
 
+      <!-- SECURITY CARD -->
       <div class="card-soft flex-grow-1">
         <div class="small-muted text-uppercase mb-1">Security</div>
         <div class="fw-semibold">HMAC-signed files</div>
@@ -29,77 +39,75 @@
         </div>
       </div>
     </div>
-
-    <div class="mt-4">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0">Recent Certificates</h5>
-        <span class="small-muted">Showing {{ uploads|length }} certificates.</span>
-      </div>
-
-      {% if uploads %}
-      <div class="table-responsive">
-        <table class="table-modern w-100">
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>Email</th>
-              <th>Description</th>
-              <th>Code</th>
-              <th>Uploaded</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for cert in uploads %}
-            <tr>
-              <td>{{ cert['student_name'] }}</td>
-              <td>{{ cert['student_email'] }}</td>
-              <td>{{ cert['description'] }}</td>
-
-              <td>
-                {% if cert['verification_code'] %}
-                  <span class="chip chip--accent">{{ cert['verification_code'] }}</span>
-                {% else %}
-                  <span class="small-muted">—</span>
-                {% endif %}
-              </td>
-
-              <td>
-                {{ cert['uploaded_at'] }}
-              </td>
-
-              <td>
-                <div class="d-flex gap-2">
-                  <a
-                    href="{{ url_for('verify_certificate', code=cert['verification_code']) }}"
-                    class="btn btn-sm btn-primary-pill"
-                    target="_blank"
-                  >
-                    Verify
-                  </a>
-
-                  {% if cert['public_token'] %}
-                  <a
-                    href="{{ url_for('public_view', token=cert['public_token']) }}"
-                    class="btn btn-sm btn-ghost-pill"
-                    target="_blank"
-                  >
-                    Public View
-                  </a>
-                  {% endif %}
-                </div>
-              </td>
-
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-      <div class="alert alert-info mt-3">No certificates found.</div>
-      {% endif %}
-
-    </div>
   </div>
+
+  <!-- BOTTOM CARD: RECENT CERTIFICATES TABLE -->
+  <div class="app-card-shell">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Recent Certificates</h5>
+      <span class="small-muted">Showing {{ uploads|length }} certificates.</span>
+    </div>
+
+    {% if uploads %}
+    <div class="table-responsive">
+      <table class="table-modern w-100">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Email</th>
+            <th>Description</th>
+            <th>Code</th>
+            <th>Uploaded</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cert in uploads %}
+          <tr>
+            <td>{{ cert['student_name'] }}</td>
+            <td>{{ cert['student_email'] }}</td>
+            <td>{{ cert['description'] }}</td>
+
+            <td>
+              {% if cert['verification_code'] %}
+                <span class="chip chip--accent">{{ cert['verification_code'] }}</span>
+              {% else %}
+                <span class="small-muted">—</span>
+              {% endif %}
+            </td>
+
+            <td>{{ cert['uploaded_at'] }}</td>
+
+            <td>
+              <div class="d-flex gap-2">
+                <a
+                  href="{{ url_for('verify_certificate', code=cert['verification_code']) }}"
+                  class="btn btn-sm btn-primary-pill"
+                  target="_blank"
+                >
+                  Verify
+                </a>
+
+                {% if cert['public_token'] %}
+                <a
+                  href="{{ url_for('public_view', token=cert['public_token']) }}"
+                  class="btn btn-sm btn-ghost-pill"
+                  target="_blank"
+                >
+                  Public View
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-3">No certificates found.</div>
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}

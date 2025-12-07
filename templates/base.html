@@ -541,7 +541,7 @@
 </head>
 <body>
 
-{# NAVBAR IS OPTIONAL NOW #}
+{# NAVBAR CAN BE HIDDEN WITH hide_nav=true #}
 {% if not hide_nav %}
 <nav class="navbar navbar-expand-lg app-nav">
   <div class="container-xl py-2">
@@ -584,9 +584,18 @@
             <a class="btn btn-ghost-pill btn-sm" href="{{ url_for('logout') }}">Logout</a>
           </li>
         {% else %}
+          <!-- When not logged in: show student + teacher entry points -->
+          <li class="nav-item d-none d-lg-block">
+            <a class="nav-link" href="{{ url_for('student_login') }}">Student login</a>
+          </li>
+
           <li class="nav-item ms-lg-3 d-flex gap-2 mt-2 mt-lg-0">
-            <a class="btn btn-ghost-pill btn-sm" href="{{ url_for('login') }}">Login</a>
-            <a class="btn btn-primary-pill btn-sm" href="{{ url_for('register') }}">Sign up</a>
+            <a class="btn btn-ghost-pill btn-sm" href="{{ url_for('login') }}">
+              Teacher login
+            </a>
+            <a class="btn btn-primary-pill btn-sm" href="{{ url_for('register') }}">
+              Teacher sign up
+            </a>
           </li>
         {% endif %}
       </ul>

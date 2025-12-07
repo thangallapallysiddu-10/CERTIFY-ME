@@ -762,7 +762,12 @@ def _seed_student():
     return msg
 
 # ----------------- ENTRYPOINT -----------------
+# ----------------- ENTRYPOINT -----------------
 if __name__ == "__main__":
+    # On Render, PORT is provided; locally defaults to 5000
     port = int(os.environ.get("PORT", 5000))
+    # Locally: set FLASK_DEBUG=1 to get debug mode, on Render it will be off
+    debug = os.environ.get("FLASK_DEBUG", "0") == "1"
     print(f"CertifyMe starting on 0.0.0.0:{port}. Upload folder: {UPLOAD_DIR}")
-    app.run(debug=True, host="0.0.0.0", port=port)
+    app.run(debug=debug, host="0.0.0.0", port=port)
+
