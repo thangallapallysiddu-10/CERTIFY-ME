@@ -63,6 +63,8 @@
       linear-gradient(135deg, rgba(0,234,255,0.5), rgba(168,85,247,0.6));
   }
 
+  /* ===== Scroll animation base ===== */
+
   @keyframes floatIn {
     from {
       opacity: 0;
@@ -74,18 +76,28 @@
     }
   }
 
-  .feature-card,
-  .step-card {
+  /* start hidden */
+  .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+    will-change: opacity, transform;
+  }
+
+  /* when in view, play animation */
+  .reveal-on-scroll.in-view {
     animation: floatIn 0.55s ease-out both;
   }
 
-  .feature-row .col-md-4:nth-child(1) .feature-card { animation-delay: 0.05s; }
-  .feature-row .col-md-4:nth-child(2) .feature-card { animation-delay: 0.13s; }
-  .feature-row .col-md-4:nth-child(3) .feature-card { animation-delay: 0.21s; }
+  /* staggered delays (like SaaS landing) */
+  .feature-row .col-md-4:nth-child(1) .reveal-on-scroll { animation-delay: 0.05s; }
+  .feature-row .col-md-4:nth-child(2) .reveal-on-scroll { animation-delay: 0.13s; }
+  .feature-row .col-md-4:nth-child(3) .reveal-on-scroll { animation-delay: 0.21s; }
 
-  .step-row .col-md-4:nth-child(1) .step-card { animation-delay: 0.10s; }
-  .step-row .col-md-4:nth-child(2) .step-card { animation-delay: 0.18s; }
-  .step-row .col-md-4:nth-child(3) .step-card { animation-delay: 0.26s; }
+  .step-row .col-md-4:nth-child(1) .reveal-on-scroll { animation-delay: 0.10s; }
+  .step-row .col-md-4:nth-child(2) .reveal-on-scroll { animation-delay: 0.18s; }
+  .step-row .col-md-4:nth-child(3) .reveal-on-scroll { animation-delay: 0.26s; }
+
+  /* ===== Cards / layout ===== */
 
   .feature-card {
     position: relative;
@@ -163,6 +175,10 @@
     background: linear-gradient(135deg, #22c55e, #16a34a);
   }
 
+  .feature-icon.links {
+    background: linear-gradient(135deg, #0ea5e9, #22d3ee);
+  }
+
   .feature-title {
     font-size: 0.98rem;
     font-weight: 600;
@@ -230,7 +246,7 @@
 </style>
 
 <div class="container page-shell">
-  <div class="howit-container">
+  <div class="howit-container reveal-on-scroll">
 
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
       <div>
@@ -255,7 +271,7 @@
 
       <div class="row g-3 feature-row">
         <div class="col-md-4">
-          <div class="feature-card h-100">
+          <div class="feature-card h-100 reveal-on-scroll">
             <div class="feature-inner">
               <div class="feature-icon hash">H</div>
               <div class="feature-title">SHA-256 hashing</div>
@@ -266,18 +282,22 @@
             </div>
           </div>
         </div>
-              <div class="col-md-4">
-        <div class="feature-card h-100">
-          <div class="feature-icon links">V</div>
-          <div class="feature-title-text">Verifiable links</div>
-          <p class="feature-text mb-0">
-            Each certificate is assigned a unique verification code and optional public link.
-            Anyone with the code can check authenticity on the Verify page — no QR required.
-          </p>
-        </div>
-      </div>
+
         <div class="col-md-4">
-          <div class="feature-card h-100">
+          <div class="feature-card h-100 reveal-on-scroll">
+            <div class="feature-inner">
+              <div class="feature-icon links">V</div>
+              <div class="feature-title">Verifiable links</div>
+              <p class="feature-text mb-0">
+                Each certificate is assigned a unique verification code and optional public link.
+                Anyone with the code can check authenticity on the Verify page — no QR required.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="feature-card h-100 reveal-on-scroll">
             <div class="feature-inner">
               <div class="feature-icon audit">✓</div>
               <div class="feature-title">Tamper detection</div>
@@ -299,7 +319,7 @@
 
       <div class="row g-3 step-row">
         <div class="col-md-4">
-          <div class="step-card">
+          <div class="step-card reveal-on-scroll">
             <div class="step-number">1</div>
             <div class="step-title">Teacher uploads</div>
             <p class="step-text">
@@ -309,9 +329,9 @@
         </div>
 
         <div class="col-md-4">
-          <div class="step-card">
+          <div class="step-card reveal-on-scroll">
             <div class="step-number">2</div>
-            <div class="step-title">Hash & HMAC</div>
+            <div class="step-title">Hash &amp; HMAC</div>
             <p class="step-text">
               The hash is combined with a secret HMAC key only the platform knows.
             </p>
@@ -319,7 +339,7 @@
         </div>
 
         <div class="col-md-4">
-          <div class="step-card">
+          <div class="step-card reveal-on-scroll">
             <div class="step-number">3</div>
             <div class="step-title">Verify anytime</div>
             <p class="step-text">
@@ -332,4 +352,24 @@
 
   </div>
 </div>
+
+<!-- Scroll animation script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const revealEls = document.querySelectorAll('.reveal-on-scroll');
+
+    const observer = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          obs.unobserve(entry.target);   // animate once
+        }
+      });
+    }, {
+      threshold: 0.18
+    });
+
+    revealEls.forEach(el => observer.observe(el));
+  });
+</script>
 {% endblock %}
