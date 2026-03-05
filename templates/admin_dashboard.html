@@ -21,8 +21,8 @@
     padding: 4px 10px;
     border-radius: 999px;
     font-size: 0.8rem;
-    background: linear-gradient(to right, rgba(56,189,248,0.2), rgba(129,140,248,0.25));
-    border: 1px solid rgba(129,140,248,0.6);
+    background: linear-gradient(to right, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.25));
+    border: 1px solid rgba(129, 140, 248, 0.6);
   }
 
   .admin-stat-grid {
@@ -35,9 +35,9 @@
   .admin-stat-card {
     padding: 12px 14px;
     border-radius: 14px;
-    background: radial-gradient(circle at top left, rgba(59,130,246,0.18), rgba(15,23,42,0.95));
-    border: 1px solid rgba(148,163,184,0.5);
-    box-shadow: 0 18px 40px rgba(15,23,42,0.9);
+    background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), rgba(15, 23, 42, 0.95));
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
   }
 
   .admin-stat-label {
@@ -74,16 +74,16 @@
     font-size: 0.75rem;
     padding: 2px 8px;
     border-radius: 999px;
-    border: 1px solid rgba(148,163,184,0.5);
+    border: 1px solid rgba(148, 163, 184, 0.5);
     color: #9ca3af;
   }
 
   .panel {
     border-radius: 18px;
-    border: 1px solid rgba(148,163,184,0.45);
-    background: rgba(15,23,42,0.96);
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    background: rgba(15, 23, 42, 0.96);
     padding: 14px 16px;
-    box-shadow: 0 24px 60px rgba(15,23,42,0.95);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.95);
   }
 
   .logs-table {
@@ -98,11 +98,11 @@
   }
 
   .logs-table tbody tr {
-    border-bottom: 1px solid rgba(31,41,55,0.9);
+    border-bottom: 1px solid rgba(31, 41, 55, 0.9);
   }
 
   .logs-table tbody tr:hover {
-    background: rgba(15,23,42,0.9);
+    background: rgba(15, 23, 42, 0.9);
   }
 
   .chip {
@@ -111,13 +111,13 @@
     padding: 2px 8px;
     border-radius: 999px;
     font-size: 0.7rem;
-    border: 1px solid rgba(55,65,81,0.9);
+    border: 1px solid rgba(55, 65, 81, 0.9);
     color: #e5e7eb;
-    background: rgba(15,23,42,0.9);
+    background: rgba(15, 23, 42, 0.9);
   }
 
   .chip--ip {
-    border-color: rgba(56,189,248,0.5);
+    border-color: rgba(56, 189, 248, 0.5);
     color: #7dd3fc;
   }
 
@@ -131,7 +131,7 @@
 
   .list-minimal li {
     padding: 6px 0;
-    border-bottom: 1px solid rgba(31,41,55,0.9);
+    border-bottom: 1px solid rgba(31, 41, 55, 0.9);
     font-size: 0.8rem;
   }
 
@@ -159,9 +159,17 @@
       </p>
     </div>
 
-    <div class="text-end small-muted">
+    <div class="text-end small-muted d-flex flex-column align-items-end">
       <div>Logged in as <span class="text-light fw-semibold">{{ session.admin_name or 'Admin' }}</span></div>
-      <div class="opacity-75">Last refresh: {{ now or "just now" }}</div>
+      <div class="opacity-75 mb-2">Last refresh: {{ now or "just now" }}</div>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-sm btn-outline-light"
+        style="opacity: 0.8; font-size: 0.8rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-11.41l5.44 5.44" />
+        </svg>
+        Refresh Data
+      </a>
     </div>
   </div>
 
@@ -209,25 +217,25 @@
             </thead>
             <tbody>
               {% for a in audits %}
-                <tr>
-                  <td class="small">{{ a['created_at'] }}</td>
-                  <td>
-                    <span class="chip">
-                      {{ a['action'] }}
-                    </span>
-                  </td>
-                  <td class="small">{{ a['actor'] }}</td>
-                  <td class="small">{{ a['certificate_id'] or '-' }}</td>
-                  <td>
-                    <span class="chip chip--ip">{{ a['ip_address'] or '-' }}</span>
-                  </td>
-                </tr>
+              <tr>
+                <td class="small">{{ a['created_at'] }}</td>
+                <td>
+                  <span class="chip">
+                    {{ a['action'] }}
+                  </span>
+                </td>
+                <td class="small">{{ a['actor'] }}</td>
+                <td class="small">{{ a['certificate_id'] or '-' }}</td>
+                <td>
+                  <span class="chip chip--ip">{{ a['ip'] or '-' }}</span>
+                </td>
+              </tr>
               {% else %}
-                <tr>
-                  <td colspan="5" class="small-muted text-center py-3">
-                    No audit entries yet.
-                  </td>
-                </tr>
+              <tr>
+                <td colspan="5" class="small-muted text-center py-3">
+                  No audit entries yet.
+                </td>
+              </tr>
               {% endfor %}
             </tbody>
           </table>
@@ -247,24 +255,24 @@
           <div class="item-label mb-1">Teachers</div>
           <ul class="list-minimal">
             {% for t in teachers %}
-              <li>
-                <div>{{ t['name'] }} <span class="small-muted">({{ t['email'] }})</span></div>
-                <div class="item-label">{{ t['created_at'] }}</div>
-              </li>
+            <li>
+              <div>{{ t['name'] }} <span class="small-muted">({{ t['email'] }})</span></div>
+              <div class="item-label">{{ t['created_at'] }}</div>
+            </li>
             {% else %}
-              <li class="small-muted">No teachers yet.</li>
+            <li class="small-muted">No teachers yet.</li>
             {% endfor %}
           </ul>
 
           <div class="item-label mt-3 mb-1">Students</div>
           <ul class="list-minimal">
             {% for s in students %}
-              <li>
-                <div>{{ s['name'] }} <span class="small-muted">({{ s['email'] }})</span></div>
-                <div class="item-label">{{ s['created_at'] }}</div>
-              </li>
+            <li>
+              <div>{{ s['name'] }} <span class="small-muted">({{ s['email'] }})</span></div>
+              <div class="item-label">{{ s['created_at'] }}</div>
+            </li>
             {% else %}
-              <li class="small-muted">No students yet.</li>
+            <li class="small-muted">No students yet.</li>
             {% endfor %}
           </ul>
         </div>

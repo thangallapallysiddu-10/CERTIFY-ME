@@ -69,7 +69,8 @@ def init_db():
         uploader_ip TEXT,
         student_email TEXT,
         thumbnail TEXT,
-        public_token TEXT
+        public_token TEXT,
+        qr_code TEXT
     );
     """)
     cur.execute("""
@@ -177,7 +178,7 @@ def verify_signature(hex_hash, signature):
 def gen_verification_code(length=8):
     # Codes like: CFM-9A72KQ4G
     chars = string.ascii_uppercase + string.digits
-    code = ''.join(random.choice(chars) for _ in range(length))
+    code = ''.join(secrets.choice(chars) for _ in range(length))
     return f"CFM-{code}"
 
 def make_qr(code, filename_prefix):
@@ -443,7 +444,12 @@ def upload():
 
         file_hash = compute_sha256(save_path)
         signature = sign_hash(file_hash)
-        code = gen_verification_code()
+        
+        # generate unique verification code
+        while True:
+            code = gen_verification_code()
+            if not db.execute("SELECT 1 FROM certificates WHERE verification_code = ?", (code,)).fetchone():
+                break
 
         # find student id if exists by email
         student_id = None
@@ -460,12 +466,16 @@ def upload():
         # generate public token
         public_token = secrets.token_urlsafe(24)
 
+        # generate QR code BEFORE insert so we can store the filename
+        qr_file = make_qr(code, ts)
+
         try:
             db.execute("""
                 INSERT INTO certificates (student_id, student_name, student_email, description,
                                           filename, verification_code, file_hash, file_signature,
-                                          uploaded_by, uploaded_by_name, uploader_ip, thumbnail, public_token)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                          uploaded_by, uploaded_by_name, uploader_ip, thumbnail,
+                                          public_token, qr_code)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 student_id,
                 student_name,
@@ -479,7 +489,8 @@ def upload():
                 teacher_row["name"],
                 request.remote_addr or "unknown",
                 thumb_name,
-                public_token
+                public_token,
+                qr_file
             ))
             db.commit()
             cert_row = db.execute(
@@ -488,8 +499,10 @@ def upload():
             ).fetchone()
             cert_id = cert_row["id"] if cert_row else None
             insert_audit(cert_id, "upload", teacher_row["email"], request.remote_addr or "unknown")
-            qr_file = make_qr(code, ts)
-            flash(f"Uploaded. Verification code: {code}", "success")
+            if not qr_file:
+                flash(f"Uploaded. Verification code: {code} (QR generation failed)", "success")
+            else:
+                flash(f"Uploaded. Verification code: {code}", "success")
             db.close()
             return render_template("upload.html", code=code, qr=qr_file, filename=safe_filename)
         except Exception as e:
@@ -671,13 +684,22 @@ def admin_dashboard():
         "SELECT id, name, email, created_at FROM students ORDER BY id DESC LIMIT 200"
     ).fetchall()
     db.close()
+    stats = get_platform_stats()
     insert_audit(
         None,
         "admin_view_dashboard",
         session.get("admin_name") or "admin",
         request.remote_addr or "unknown"
     )
-    return render_template("admin_dashboard.html", audits=audits, uploads=uploads, teachers=teachers, students=students)
+    return render_template(
+        "admin_dashboard.html",
+        audits=audits,
+        uploads=uploads,
+        teachers=teachers,
+        students=students,
+        stats=stats,
+        now=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    )
 
 # -------- Public certificate view --------
 @app.route("/public/<token>")
@@ -761,7 +783,6 @@ def _seed_student():
     db.close()
     return msg
 
-# ----------------- ENTRYPOINT -----------------
 # ----------------- ENTRYPOINT -----------------
 if __name__ == "__main__":
     # On Render, PORT is provided; locally defaults to 5000

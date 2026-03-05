@@ -57,6 +57,7 @@
             <th>Email</th>
             <th>Description</th>
             <th>Code</th>
+            <th>QR</th>
             <th>Uploaded</th>
             <th>Actions</th>
           </tr>
@@ -71,6 +72,20 @@
             <td>
               {% if cert['verification_code'] %}
                 <span class="chip chip--accent">{{ cert['verification_code'] }}</span>
+              {% else %}
+                <span class="small-muted">—</span>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if cert['qr_code'] %}
+                <a href="{{ url_for('static', filename='qrcodes/' ~ cert['qr_code']) }}" target="_blank">
+                  <img
+                    src="{{ url_for('static', filename='qrcodes/' ~ cert['qr_code']) }}"
+                    alt="QR"
+                    style="width: 48px; height: 48px; border-radius: 6px; background: #fff;"
+                  >
+                </a>
               {% else %}
                 <span class="small-muted">—</span>
               {% endif %}

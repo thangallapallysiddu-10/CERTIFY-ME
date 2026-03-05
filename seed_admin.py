@@ -21,8 +21,8 @@ try:
     cur.execute("INSERT INTO admins (name,email,password_hash) VALUES (?,?,?)",
                 ("Super Admin", "admin@example.com", pw))
     conn.commit()
-    print("✅ Seeded admin: admin@example.com / adminpass123")
+    print("[OK] Seeded admin: admin@example.com / adminpass123")
 except Exception as e:
-    print("⚠️ Already exists or error:", e)
+    print("[WARNING] Already exists or error:", e)
 
 conn.close()

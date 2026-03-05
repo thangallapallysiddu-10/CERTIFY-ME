@@ -1,31 +1,27 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <title>{% block title %}CertifyMe{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Bootstrap -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  >
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <!-- Space Grotesk -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  >
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
 
   {% block head_extra %}{% endblock %}
 
   <style>
     :root {
       --bg: #000000;
-      --surface: rgba(255,255,255,0.04);
-      --surface-soft: rgba(255,255,255,0.03);
+      --surface: rgba(255, 255, 255, 0.04);
+      --surface-soft: rgba(255, 255, 255, 0.03);
 
       --glow-1: #00eaff;
       --glow-2: #a855f7;
@@ -33,13 +29,15 @@
       --text-main: #ffffff;
       --text-soft: #b3b3b3;
 
-      --border-soft: rgba(255,255,255,0.08);
+      --border-soft: rgba(255, 255, 255, 0.08);
 
       --radius-lg: 24px;
       --radius-md: 18px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       min-height: 100vh;
@@ -47,12 +45,14 @@
       font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--text-main);
       background:
-        radial-gradient(600px at 10% 0%, rgba(0,234,255,0.16), transparent 60%),
-        radial-gradient(600px at 90% 100%, rgba(168,85,247,0.18), transparent 60%),
+        radial-gradient(600px at 10% 0%, rgba(0, 234, 255, 0.16), transparent 60%),
+        radial-gradient(600px at 90% 100%, rgba(168, 85, 247, 0.18), transparent 60%),
         #000000;
     }
 
-    a { text-decoration: none; }
+    a {
+      text-decoration: none;
+    }
 
     /* NAVBAR */
 
@@ -61,16 +61,16 @@
       top: 0;
       z-index: 40;
       backdrop-filter: blur(22px);
-      background: rgba(0,0,0,0.9);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0, 0, 0, 0.9);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .navbar-brand-mark {
       padding: 4px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(0,234,255,0.85);
+      border: 1px solid rgba(0, 234, 255, 0.85);
       background:
-        radial-gradient(circle at 0% 0%, rgba(0,234,255,0.75), rgba(0,0,0,0.96));
+        radial-gradient(circle at 0% 0%, rgba(0, 234, 255, 0.75), rgba(0, 0, 0, 0.96));
       font-size: 0.8rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
@@ -78,7 +78,7 @@
       align-items: center;
       gap: 8px;
       color: #f9fafb;
-      box-shadow: 0 0 16px rgba(0,234,255,0.55);
+      box-shadow: 0 0 16px rgba(0, 234, 255, 0.55);
     }
 
     .brand-dot {
@@ -86,7 +86,7 @@
       height: 8px;
       border-radius: 999px;
       background: #00ff9d;
-      box-shadow: 0 0 16px rgba(0,255,157,0.9);
+      box-shadow: 0 0 16px rgba(0, 255, 157, 0.9);
     }
 
     .nav-link {
@@ -95,8 +95,13 @@
       color: var(--text-soft) !important;
     }
 
-    .nav-link:hover { color: var(--glow-1) !important; }
-    .nav-link.active { color: #ffffff !important; }
+    .nav-link:hover {
+      color: var(--glow-1) !important;
+    }
+
+    .nav-link.active {
+      color: #ffffff !important;
+    }
 
     .btn-pill {
       border-radius: 999px;
@@ -108,9 +113,9 @@
     /* BUTTONS (soft glow) */
 
     .btn-primary-pill {
-      background: linear-gradient(135deg,var(--glow-1),var(--glow-2));
+      background: linear-gradient(135deg, var(--glow-1), var(--glow-2));
       border: none;
-      box-shadow: 0 0 9px rgba(0,234,255,0.35);
+      box-shadow: 0 0 9px rgba(0, 234, 255, 0.35);
       color: #000;
       transition:
         box-shadow 0.18s ease-out,
@@ -120,13 +125,13 @@
 
     .btn-primary-pill:hover {
       filter: brightness(1.02);
-      box-shadow: 0 0 14px rgba(0,234,255,0.40);
+      box-shadow: 0 0 14px rgba(0, 234, 255, 0.40);
       transform: translateY(-1px);
     }
 
     .btn-ghost-pill {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       color: var(--text-main);
       transition:
         border-color 0.18s ease-out,
@@ -136,8 +141,8 @@
     }
 
     .btn-ghost-pill:hover {
-      background: rgba(255,255,255,0.12);
-      border-color: rgba(255,255,255,0.28);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.28);
       transform: translateY(-1px);
     }
 
@@ -153,7 +158,7 @@
       border-radius: var(--radius-lg);
       background: var(--surface-soft);
       border: 1px solid var(--border-soft);
-      box-shadow: 0 22px 50px rgba(0,0,0,0.9);
+      box-shadow: 0 22px 50px rgba(0, 0, 0, 0.9);
       padding: 1.6rem 1.8rem;
     }
 
@@ -185,12 +190,14 @@
     .card-soft {
       border-radius: var(--radius-md);
       background: var(--surface);
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       padding: 1rem 1.1rem;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.85);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
     }
 
-    .card-soft + .card-soft { margin-top: 1rem; }
+    .card-soft+.card-soft {
+      margin-top: 1rem;
+    }
 
     .small-muted {
       font-size: 0.8rem;
@@ -204,20 +211,20 @@
       padding: 3px 9px;
       border-radius: 999px;
       font-size: 0.75rem;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.06);
       color: var(--text-main);
     }
 
     .chip--accent {
-      border-color: rgba(0,234,255,0.7);
-      background: rgba(0,234,255,0.1);
+      border-color: rgba(0, 234, 255, 0.7);
+      background: rgba(0, 234, 255, 0.1);
       color: #e0faff;
     }
 
     .chip--danger {
-      border-color: rgba(248,113,113,0.8);
-      background: rgba(248,113,113,0.12);
+      border-color: rgba(248, 113, 113, 0.8);
+      background: rgba(248, 113, 113, 0.12);
       color: #ffe4e6;
     }
 
@@ -226,8 +233,14 @@
       height: 6px;
       border-radius: 999px;
     }
-    .status-dot--ok { background: #00ff9d; }
-    .status-dot--pending { background: #facc15; }
+
+    .status-dot--ok {
+      background: #00ff9d;
+    }
+
+    .status-dot--pending {
+      background: #facc15;
+    }
 
     .status-pill {
       display: inline-flex;
@@ -236,15 +249,17 @@
       padding: 2px 8px;
       border-radius: 999px;
       font-size: 0.72rem;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.06);
     }
+
     .status-pill--ok {
-      border-color: rgba(34,197,94,0.8);
+      border-color: rgba(34, 197, 94, 0.8);
       color: #bbf7d0;
     }
+
     .status-pill--pending {
-      border-color: rgba(234,179,8,0.9);
+      border-color: rgba(234, 179, 8, 0.9);
       color: #facc15;
     }
 
@@ -256,21 +271,21 @@
 
     .form-control,
     .form-select {
-      background: rgba(0,0,0,0.9);
-      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       color: var(--text-main);
       font-size: 0.88rem;
     }
 
     .form-control::placeholder {
-      color: rgba(255,255,255,0.35);
+      color: rgba(255, 255, 255, 0.35);
     }
 
     .form-control:focus,
     .form-select:focus {
       background: #000000;
       border-color: var(--glow-1);
-      box-shadow: 0 0 0 1px rgba(0,234,255,0.8);
+      box-shadow: 0 0 0 1px rgba(0, 234, 255, 0.8);
       color: var(--text-main);
     }
 
@@ -288,11 +303,11 @@
     }
 
     .table-modern tbody tr {
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .table-modern tbody tr:hover {
-      background: rgba(255,255,255,0.04);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .pill-tab-group {
@@ -304,32 +319,34 @@
 
     .pill-tab {
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.18);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       padding: 6px 14px;
       font-size: 0.82rem;
       display: inline-flex;
       align-items: center;
       gap: 7px;
       cursor: pointer;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--text-soft);
     }
 
     .pill-tab.active {
-      background: linear-gradient(135deg, rgba(0,234,255,0.3), rgba(168,85,247,0.3));
-      border-color: rgba(0,234,255,0.9);
+      background: linear-gradient(135deg, rgba(0, 234, 255, 0.3), rgba(168, 85, 247, 0.3));
+      border-color: rgba(0, 234, 255, 0.9);
       color: var(--text-main);
-      box-shadow: 0 0 18px rgba(0,234,255,0.5);
+      box-shadow: 0 0 18px rgba(0, 234, 255, 0.5);
     }
 
     .tab-dot {
       width: 6px;
       height: 6px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.7);
+      background: rgba(255, 255, 255, 0.7);
     }
 
-    .pill-tab.active .tab-dot { background: #00ff9d; }
+    .pill-tab.active .tab-dot {
+      background: #00ff9d;
+    }
 
     .hero {
       padding: 4rem 0 3rem;
@@ -343,7 +360,9 @@
     }
 
     @media (max-width: 991.98px) {
-      .hero-grid { grid-template-columns: 1fr; }
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .hero-title {
@@ -354,7 +373,7 @@
     }
 
     .hero-title .accent {
-      background: linear-gradient(135deg,var(--glow-1),var(--glow-2));
+      background: linear-gradient(135deg, var(--glow-1), var(--glow-2));
       -webkit-background-clip: text;
       color: transparent;
     }
@@ -392,16 +411,18 @@
       flex-direction: column;
     }
 
-    .hero-role-card .role-actions { margin-top: auto; }
+    .hero-role-card .role-actions {
+      margin-top: auto;
+    }
 
     .hero-panel {
       border-radius: var(--radius-lg);
-      background: radial-gradient(circle at 0% 0%, rgba(0,234,255,0.16), transparent 60%),
-                  radial-gradient(circle at 100% 100%, rgba(168,85,247,0.18), transparent 60%),
-                  rgba(0,0,0,0.9);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: radial-gradient(circle at 0% 0%, rgba(0, 234, 255, 0.16), transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.18), transparent 60%),
+        rgba(0, 0, 0, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       padding: 1.2rem 1.4rem;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.9);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9);
     }
 
     .hero-panel-title {
@@ -417,16 +438,18 @@
     .console-box {
       margin-top: 0.8rem;
       border-radius: 16px;
-      background: rgba(0,0,0,0.95);
-      border: 1px solid rgba(0,234,255,0.4);
+      background: rgba(0, 0, 0, 0.95);
+      border: 1px solid rgba(0, 234, 255, 0.4);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: 0.8rem;
       padding: 0.9rem 1rem;
       color: #c6f6ff;
-      text-shadow: 0 0 6px rgba(0,234,255,0.85);
+      text-shadow: 0 0 6px rgba(0, 234, 255, 0.85);
     }
 
-    .features { padding: 1.5rem 0 0.5rem; }
+    .features {
+      padding: 1.5rem 0 0.5rem;
+    }
 
     .features-header {
       display: flex;
@@ -450,20 +473,22 @@
 
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(3,minmax(0,1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1.5rem;
     }
 
     @media (max-width: 991.98px) {
-      .features-grid { grid-template-columns: 1fr; }
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .feature-card {
       border-radius: var(--radius-md);
       background: var(--surface);
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       padding: 1.1rem 1.2rem;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.85);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
     }
 
     .feature-label {
@@ -497,7 +522,7 @@
       font-size: 1rem;
       cursor: pointer;
       padding: 2px 6px;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255, 255, 255, 0.7);
       transition: color 0.2s ease;
     }
 
@@ -512,24 +537,24 @@
       border-width: 1px;
       font-size: 0.82rem;
       padding: 0.55rem 1rem;
-      background: rgba(248,113,113,0.08);
-      border-color: rgba(248,113,113,0.7);
+      background: rgba(248, 113, 113, 0.08);
+      border-color: rgba(248, 113, 113, 0.7);
       color: #fecaca;
-      box-shadow: 0 0 18px rgba(248,113,113,0.25);
+      box-shadow: 0 0 18px rgba(248, 113, 113, 0.25);
     }
 
     .alert-soft.alert-success {
-      background: rgba(34,197,94,0.10);
-      border-color: rgba(34,197,94,0.8);
+      background: rgba(34, 197, 94, 0.10);
+      border-color: rgba(34, 197, 94, 0.8);
       color: #bbf7d0;
-      box-shadow: 0 0 18px rgba(34,197,94,0.25);
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.25);
     }
 
     .alert-soft.alert-info {
-      background: rgba(59,130,246,0.10);
-      border-color: rgba(59,130,246,0.8);
+      background: rgba(59, 130, 246, 0.10);
+      border-color: rgba(59, 130, 246, 0.8);
       color: #bfdbfe;
-      box-shadow: 0 0 18px rgba(59,130,246,0.25);
+      box-shadow: 0 0 18px rgba(59, 130, 246, 0.25);
     }
 
     .alert-soft.fade-out {
@@ -539,51 +564,57 @@
     }
   </style>
 </head>
+
 <body>
 
-{# NAVBAR CAN BE HIDDEN WITH hide_nav=true #}
-{% if not hide_nav %}
-<nav class="navbar navbar-expand-lg app-nav">
-  <div class="container-xl py-2">
-    <a class="navbar-brand" href="{{ url_for('index') }}">
-      <span class="navbar-brand-mark">
-        <span class="brand-dot"></span>
-        CERTIFYME
-      </span>
-    </a>
+  {# NAVBAR CAN BE HIDDEN WITH hide_nav=true #}
+  {% if not hide_nav %}
+  <nav class="navbar navbar-expand-lg app-nav">
+    <div class="container-xl py-2">
+      <a class="navbar-brand" href="{{ url_for('index') }}">
+        <span class="navbar-brand-mark">
+          <span class="brand-dot"></span>
+          CERTIFYME
+        </span>
+      </a>
 
-    <button class="navbar-toggler text-light" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+      <button class="navbar-toggler text-light" type="button" data-bs-toggle="collapse" data-bs-target="#navMain"
+        data-bs-theme="dark">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <div class="collapse navbar-collapse" id="navMain">
-      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-        <li class="nav-item">
-          <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('index') }}">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if active_page == 'verify' %}active{% endif %}" href="{{ url_for('verify_certificate') }}">Verify</a>
-        </li>
-
-        {% if session.get('role') == 'admin' %}
+      <div class="collapse navbar-collapse" id="navMain">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
           <li class="nav-item">
-            <a class="nav-link {% if active_page == 'admin' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Admin</a>
+            <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('index') }}">Home</a>
           </li>
-        {% elif session.get('role') == 'teacher' %}
           <li class="nav-item">
-            <a class="nav-link {% if active_page == 'teacher' %}active{% endif %}" href="{{ url_for('teacher_dashboard') }}">Teacher</a>
+            <a class="nav-link {% if active_page == 'verify' %}active{% endif %}"
+              href="{{ url_for('verify_certificate') }}">Verify</a>
           </li>
-        {% elif session.get('role') == 'student' %}
-          <li class="nav-item">
-            <a class="nav-link {% if active_page == 'student' %}active{% endif %}" href="{{ url_for('student_dashboard') }}">Student</a>
-          </li>
-        {% endif %}
 
-        {% if session.get('user_id') %}
+          {% if session.get('role') == 'admin' %}
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'admin' %}active{% endif %}"
+              href="{{ url_for('admin_dashboard') }}">Admin</a>
+          </li>
+          {% elif session.get('role') == 'teacher' %}
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'teacher' %}active{% endif %}"
+              href="{{ url_for('teacher_dashboard') }}">Teacher</a>
+          </li>
+          {% elif session.get('role') == 'student' %}
+          <li class="nav-item">
+            <a class="nav-link {% if active_page == 'student' %}active{% endif %}"
+              href="{{ url_for('student_dashboard') }}">Student</a>
+          </li>
+          {% endif %}
+
+          {% if session.get('user_id') %}
           <li class="nav-item ms-lg-3">
             <a class="btn btn-ghost-pill btn-sm" href="{{ url_for('logout') }}">Logout</a>
           </li>
-        {% else %}
+          {% else %}
           <!-- When not logged in: show student + teacher entry points -->
           <li class="nav-item d-none d-lg-block">
             <a class="nav-link" href="{{ url_for('student_login') }}">Student login</a>
@@ -597,68 +628,81 @@
               Teacher sign up
             </a>
           </li>
-        {% endif %}
-      </ul>
+          {% endif %}
+        </ul>
+      </div>
     </div>
-  </div>
-</nav>
-{% endif %}
+  </nav>
+  {% endif %}
 
-<main class="app-main">
-  {% block main %}
+  <main class="app-main">
+    <div class="container-xl mt-3">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="mb-3">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-soft alert-auto-dismiss mb-2" role="alert">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+    </div>
+
+    {% block main %}
     <div class="container-xl">
       <div class="app-card-shell">
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="mb-3">
-              {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-soft alert-auto-dismiss mb-2" role="alert">
-                  {{ message }}
-                </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-
         {% block content %}{% endblock %}
       </div>
     </div>
-  {% endblock %}
-</main>
+    {% endblock %}
+  </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <footer class="mt-auto py-4 text-center">
+    <div class="container-xl">
+      <p class="small-muted mb-0">
+        &copy; 2026 CertifyMe. All rights reserved.
+        <span class="mx-2 opacity-25">|</span>
+        <a href="{{ url_for('admin_login') }}" class="text-decoration-none text-muted hover-white"
+          style="transition: color 0.2s;">Admin Access</a>
+      </p>
+    </div>
+  </footer>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Password visibility toggles
-    document.querySelectorAll('.password-toggle-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const group = btn.closest('.password-toggle-group');
-        if (!group) return;
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-        const input = group.querySelector('.password-toggle-input');
-        if (!input) return;
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Password visibility toggles
+      document.querySelectorAll('.password-toggle-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const group = btn.closest('.password-toggle-group');
+          if (!group) return;
 
-        const isHidden = input.type === 'password';
-        input.type = isHidden ? 'text' : 'password';
+          const input = group.querySelector('.password-toggle-input');
+          if (!input) return;
+
+          const isHidden = input.type === 'password';
+          input.type = isHidden ? 'text' : 'password';
+        });
+      });
+
+      // Auto-dismiss alerts after 3 seconds
+      document.querySelectorAll('.alert-auto-dismiss').forEach((alertEl) => {
+        setTimeout(() => {
+          alertEl.classList.add('fade-out');
+          setTimeout(() => {
+            if (alertEl && alertEl.parentNode) {
+              alertEl.parentNode.removeChild(alertEl);
+            }
+          }, 400); // wait for CSS transition
+        }, 3000); // visible for 3s
       });
     });
+  </script>
 
-    // Auto-dismiss alerts after 3 seconds
-    document.querySelectorAll('.alert-auto-dismiss').forEach((alertEl) => {
-      setTimeout(() => {
-        alertEl.classList.add('fade-out');
-        setTimeout(() => {
-          if (alertEl && alertEl.parentNode) {
-            alertEl.parentNode.removeChild(alertEl);
-          }
-        }, 400); // wait for CSS transition
-      }, 3000); // visible for 3s
-    });
-  });
-</script>
-
-{% block scripts %}{% endblock %}
+  {% block scripts %}{% endblock %}
 </body>
+
 </html>
